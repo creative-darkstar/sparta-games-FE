@@ -60,7 +60,7 @@ export const getGameListByCategory = async (category: string, page?: number) => 
  */
 export const getGameDetail = async (id: number) => {
   try {
-    const res = await sparta_games.get(`/games/api/list/${id}`);
+    const res = await (sessionStorage.getItem("accessToken") ? sparta_games_auth : sparta_games).get(`/games/api/list/${id}/`);
     return res.data;
   } catch (error) {
     console.error(error);

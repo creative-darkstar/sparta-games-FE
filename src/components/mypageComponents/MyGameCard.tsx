@@ -20,11 +20,11 @@ const MyGameCard = ({ item }: Props) => {
         return {
           content: "검수중",
           colorType: "alert",
-          detailContent: "미리보기",
+          detailContent: "등록 내용 보기",
         };
       case 1:
         return {
-          content: "검수완료",
+          content: "공개중",
           colorType: "primary",
           detailContent: "게임하러가기",
         };
@@ -35,11 +35,7 @@ const MyGameCard = ({ item }: Props) => {
           detailContent: "수정 및 반려사유 확인",
         };
       default:
-        return {
-          content: "검수중",
-          colorType: "alert",
-          detailContent: "미리보기",
-        };
+        return { content: "상태 확인 필요", colorType: "alert", detailContent: "새로고침" };
     }
   };
 
@@ -87,18 +83,13 @@ const MyGameCard = ({ item }: Props) => {
         </div>
         <div className="flex items-center justify-between w-full">
           <div className="w-[20%]">
-            <SpartaButton
-              content={getRegisterStateConfig()?.content}
-              size="small"
-              colorType={getRegisterStateConfig().colorType}
-              type="filled"
-            />
+            <span className={item?.register_state === 1 ? "text-primary-500" : item?.register_state === 2 ? "text-red-400" : "text-yellow-300"}>{getRegisterStateConfig().content}</span>
           </div>
           <div className="w-[78%]">
             <SpartaButton
               content={getRegisterStateConfig()?.detailContent}
               onClick={() => {
-                navigate(`/game-detail?id=${item?.id}`);
+                if (![0, 1, 2].includes(item?.register_state ?? -1)) window.location.reload(); else navigate(`/game-detail?id=${item?.id}`);
               }}
               size="small"
               colorType={getRegisterStateConfig().colorType}

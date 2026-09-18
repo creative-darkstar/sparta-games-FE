@@ -1,9 +1,10 @@
+import RejectionPanel from "../components/gameUploadComponents/RejectionPanel";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { deleteGameList, getGameDetail } from "../api/game";
-import { getRegisterGameRejectLog } from "../api/direct";
+
 
 import GamePlaySection from "../components/gameDetailComponents/GamePlaySection/GamePlaySection";
 import ReviewContents from "../components/gameDetailComponents/ReviewSection/ReviewContents";
@@ -49,20 +50,11 @@ const GameDetail = () => {
     isError,
     error,
   } = useQuery<TGamePlayDataResponse, AxiosError>({
-    queryKey: ["gameList"],
+    queryKey: ["gameDetail", gameDetailId, userData?.data.user_id],
+    refetchOnMount: "always",
+    refetchInterval: query => query.state.data?.data.register_state === 0 ? 30000 : false,
     queryFn: () => getGameDetail(gameDetailId),
     retry: false,
-  });
-
-  const rejectLogs = useQuery({
-    queryKey: ["gameLog", gameDetailId],
-    queryFn: () => getRegisterGameRejectLog(gameDetailId),
-    enabled:
-      !!gameDetailId &&
-      !!userData &&
-      !!gamePlayData &&
-      userData.data.user_id === gamePlayData.data.maker_data.id &&
-      gamePlayData.data.register_state === 2,
   });
 
   const gameCategory = gamePlayData?.data.category[0]?.name;
@@ -93,37 +85,12 @@ const GameDetail = () => {
     noActionData.gameDeleteSuccess,
   );
 
-  useEffect(() => {
-    if (rejectLogs.data) {
-      setNoActionModalData({
-        title: "게임이 반려되었습니다.",
-        content: rejectLogs?.data?.data.content,
-        btn1: {
-          text: "확인했습니다.",
-          onClick: () => {
-            onClickModalToggleHandlers[NO_ACTION_MODAL_ID]();
-          },
-        },
-        type: "error",
-      });
-
-      onClickModalToggleHandlers[NO_ACTION_MODAL_ID]();
-    }
-  }, [rejectLogs.data]);
-
   const queryClient = useQueryClient();
-
-  useEffect(() => {
-    // 클린업으로 쿼리 캐시 초기화
-    return () => {
-      queryClient.removeQueries({ queryKey: ["gameList"] });
-      queryClient.removeQueries({ queryKey: ["gameLog"] });
-    };
-  }, [gameDetailId]);
 
   const onClickRemoveGame = async (gamePk: number | undefined) => {
     setIsPending(true);
 
+    try {
     const res = await deleteGameList(gamePk);
 
     if (res?.status === 200) {
@@ -131,6 +98,7 @@ const GameDetail = () => {
       onClickModalToggleHandlers[NO_ACTION_MODAL_ID]();
       queryClient.invalidateQueries({ queryKey: ["myGameList"] });
     }
+    } catch { setNoActionModalData({ title: "삭제 결과 확인 필요", content: "삭제 결과를 확인하지 못했습니다. 목록에서 상태를 확인해주세요.", btn1: { text: "닫기", onClick: onClickModalToggleHandlers[NO_ACTION_MODAL_ID] } }); onClickModalToggleHandlers[NO_ACTION_MODAL_ID](); } finally { setIsPending(false); }
   };
 
   return (
@@ -156,7 +124,7 @@ const GameDetail = () => {
                       colorType={"alert"}
                       customStyle="w-[170px]"
                       size={"medium"}
-                      onClick={() => onClickModalToggleHandlers[GAME_EDIT_CHECK_ID]()}
+                      onClick={() => navigate(`/game-edit/${gameDetailId}`)}
                     />
                   </span>
                   <SpartaButton
@@ -170,6 +138,7 @@ const GameDetail = () => {
               </>
             )}
           </div>
+          {gamePlayData?.data.register_state === 2 && userData?.data.user_id === gamePlayData.data.maker_data.id && <RejectionPanel gameId={gameDetailId} />}
           <GamePlaySection gamePlayData={gamePlayData?.data} />
           {gamePlayData?.data.register_state === 1 ? (
             <ReviewContents gamePk={gameDetailId} />
@@ -178,29 +147,6 @@ const GameDetail = () => {
           )}
         </main>
       )}
-
-      <SpartaPhraseCheckModal
-        isOpen={modalToggles[GAME_EDIT_CHECK_ID]}
-        modalId={GAME_EDIT_CHECK_ID}
-        onClose={onClickModalToggleHandlers[GAME_EDIT_CHECK_ID]}
-        onClickEvent={() => {
-          navigate(`/game-edit/${gameDetailId}`, { state: { gameData: gamePlayData?.data, isEditMode: true } });
-        }}
-        modalPurpose="edit"
-      >
-        <ul className="list-disc pl-5 leading-6 text-white">
-          <li>
-            게임파일을 재업로드 할 시 <span className="text-alert-default">재검수</span>가 진행되어 시간이 소요됩니다.
-          </li>
-          <li className="ms-4">이외 기본적인 제목, 게임설명 수정 시 검수과정 없이 바로 업데이트가 진행됩니다.</li>
-          <li className=" ms-4">
-            일부 PC환경에서 썸네일과 스틸컷 파일이 불러와지지 않는 오류가 있으며, 현재 해결중에 있습니다.
-          </li>
-          <li>
-            수정을 하시기 위해서는 <b className="text-alert-default">‘게임을 수정하겠습니다'</b>를 입력해주세요!
-          </li>
-        </ul>
-      </SpartaPhraseCheckModal>
 
       <SpartaPhraseCheckModal
         isOpen={modalToggles[GAME_DELETE_CHECK_ID]}

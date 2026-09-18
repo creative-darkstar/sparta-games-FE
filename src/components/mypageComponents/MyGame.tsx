@@ -8,6 +8,7 @@ import SpartaPagination from "../../spartaDesignSystem/SpartaPagination";
 import { useParams } from "react-router-dom";
 
 type TMyGameProps = {
+  submissionComplete?: boolean;
   user: TUserData;
   isMyPage: boolean | null;
 };
@@ -16,8 +17,10 @@ const MyGame = (props: TMyGameProps) => {
   const [page, setPage] = useState<number>(1);
   const { id } = useParams();
   //* Hooks
-  const { data } = useQuery<TGameDataResponse>({
+  const { data, isPending, isError, refetch } = useQuery<TGameDataResponse>({
     queryKey: ["myGameList", props.user.user_id, page],
+    refetchOnMount: "always",
+    refetchInterval: props.isMyPage ? 30000 : false,
     queryFn: () => (props.isMyPage ? getUserGameMadeList(props.user.user_id, page) : getUserGameList(Number(id), page)),
   });
 
@@ -31,8 +34,8 @@ const MyGame = (props: TMyGameProps) => {
         <p className="font-DungGeunMo text-heading-32 text-white font-[400]">{props.user.nickname}의 개발중인 게임</p>
       </div>
       {/* 만든 게임 */}
-      {gameData && gameData.length > 0 ? (
-        gameData.map((game: any) => <MyGameCard item={game} />)
+      {isPending ? <p role="status">목록을 불러오는 중입니다.</p> : isError ? <p role="alert" className="text-white">{props.submissionComplete ? "검수 요청은 완료되었지만 목록을 불러오지 못했습니다." : "목록을 불러오지 못했습니다."}<button onClick={() => refetch()}>목록 다시 불러오기</button></p> : gameData && gameData.length > 0 ? (
+        gameData.map((game: any) => <MyGameCard key={game.id} item={game} />)
       ) : (
         <p className="text-white w-full text-center py-20 text-heading-20">개발중인 게임이 없습니다.</p>
       )}
