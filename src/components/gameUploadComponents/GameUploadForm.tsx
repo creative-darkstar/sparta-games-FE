@@ -289,7 +289,7 @@ const GameUploadForm = ({ note, previousGameData, isEditMode }: Props) => {
       setNoActionModalData({
         title: "등록이 완료되었습니다.",
         content:
-          "검수 진행결과는 마이페이지 - 개발목록에서 확인 가능합니다.<br />검수 승인이 완료되는 즉시 유저들에게 게임이 공개되며, 2일 이내로 소요될 예정입니다.<br />잠시만 기다려주세요🙂",
+          "검수 진행결과는 마이페이지 - 개발목록에서 확인 가능합니다.<br />검수 완료 시 알림으로 안내합니다.<br />잠시만 기다려주세요🙂",
         btn1: {
           text: "확인했습니다.",
           onClick: () => {
@@ -401,7 +401,7 @@ const GameUploadForm = ({ note, previousGameData, isEditMode }: Props) => {
         modalPurpose="upload"
       >
         <ul className="list-disc pl-5 leading-6 text-white">
-          <li>최대 7일까지 검수기간이 걸릴 수 있습니다.</li>
+          <li>검수 완료 시 알림으로 안내합니다.</li>
           <li>검수가 통과될 시 즉시 홈페이지에서 노출됩니다.</li>
           <li>검수 중 수정이 진행될 경우, 새롭게 검수가 진행될 수 있으니 다시한번 확인해주시기 바랍니다.</li>
           <li>

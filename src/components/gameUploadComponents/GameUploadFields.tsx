@@ -102,7 +102,7 @@ const GameUploadFields = ({ isUploading, onChangeFileHandler, previousGameData }
               <input
                 id="gameFile"
                 type="file"
-                accept=".zip, .7z"
+                accept=".zip"
                 className="hidden"
                 onChange={(e) => {
                   const files = e.target.files;

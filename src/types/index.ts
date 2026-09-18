@@ -6,14 +6,14 @@ export type RadioGroupKey = keyof typeof radioGroupsData;
 export type RadioGroupData = typeof radioGroupsData;
 
 export type TApiResponse<TData> = {
-  status: "success" | "fail" | "error";
+  status: "success" | "warning" | "fail" | "error";
   message: string | null;
   data: TData;
   pagination: {
     count: number;
     next: string | null;
     previous: string | null;
-  };
+  } | null;
   error_code: string | null;
 };
 
@@ -64,7 +64,7 @@ export type TTeamBuildCommentData = {
   };
 };
 export type TTeamBuildProfileResponse = {
-  status: "success" | "fail" | "error";
+  status: "success" | "warning" | "fail" | "error";
   message: string | null;
   data: TTeamBuildProfileListItem[];
   pagination: {
@@ -76,7 +76,7 @@ export type TTeamBuildProfileResponse = {
 };
 
 export type TTeamBuildProfileUserResponse = {
-  status: "success" | "fail" | "error";
+  status: "success" | "warning" | "fail" | "error";
   message: string | null;
   data: TTeamBuildProfileListItem;
   pagination: {
@@ -104,7 +104,7 @@ export type TTeamBuildProfileListItem = TCommonTeamBuildPost & {
 };
 
 export type TTeamBuildPostResponse = {
-  status: "success" | "fail" | "error";
+  status: "success" | "warning" | "fail" | "error";
   message: string | null;
   data: {
     teambuild_posts: TTeamBuildPostListItem[];
@@ -124,7 +124,7 @@ export type TTeamBuildPostListItem = TCommonTeamBuildPost & {
 };
 
 export type TTeamBuildDetailResponse = {
-  status: "success" | "fail" | "error";
+  status: "success" | "warning" | "fail" | "error";
   message: string | null;
   data: TTeamBuildPostDetail;
 
@@ -185,7 +185,7 @@ export type TRandGame = {
 };
 
 export type TMainHttpResponse = {
-  status: "success" | "fail" | "error";
+  status: "success" | "warning" | "fail" | "error";
   message: string | null;
   data: {
     trending_games: TGameData[];
@@ -228,7 +228,7 @@ export type TUserInformationInputForm = {
 };
 
 export type TUserDataResponse = {
-  status: "success" | "fail" | "error";
+  status: "success" | "warning" | "fail" | "error";
   message: string | null;
   data: TUserData;
   pagination: {
@@ -254,7 +254,7 @@ export type TUserData = {
 };
 
 export type TGameDataResponse = {
-  status: "success" | "fail" | "error";
+  status: "success" | "warning" | "fail" | "error";
   message: string | null;
   data: TGameData[];
   pagination: {
@@ -286,7 +286,7 @@ export type TGameData = {
 export type TGameChip = { id: number; name: "Daily Top" | "Review Top" | "Bookmark Top" | "Long Play" | "New Game" };
 
 export type TGamePlayDataResponse = {
-  status: "success" | "fail" | "error";
+  status: "success" | "warning" | "fail" | "error";
   message: string | null;
   data: TGamePlayData;
   pagination: {
@@ -316,7 +316,7 @@ export type TGamePlayData = TGameData & {
 };
 
 export type TReviewResponse = {
-  status: "success" | "fail" | "error";
+  status: "success" | "warning" | "fail" | "error";
   message: string | null;
   data: {
     all_reviews: TReviewData[];
@@ -357,7 +357,7 @@ export type TReviewInputForm = {
 };
 
 export type TCategoryListResponse = {
-  status: "success" | "fail" | "error";
+  status: "success" | "warning" | "fail" | "error";
   message: string | null;
   data: TCategoryItem[];
   pagination: {
@@ -390,3 +390,7 @@ export type TGameAdminData = {
     nickname: string;
   };
 };
+
+export type TPaginatedResponse<T> = TApiResponse<T> & { pagination: { count: number; next: string | null; previous: string | null } };
+export type UploadStage = "idle" | "validating" | "uploading" | "submitting" | "completed" | "failed" | "uncertain";
+export type GameReviewState = 0 | 1 | 2;

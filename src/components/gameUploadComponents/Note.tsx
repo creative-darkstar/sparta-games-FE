@@ -73,7 +73,7 @@ const Note = ({ onClickHandler, state }: Props) => {
             <li className="relative">
               3. 게임은 검수 이후 홈페이지에 릴리즈 됩니다.
               <ol className="list-alpha ml-12 text-body-18">
-                <li>최대 7일간의 검수과정이 걸릴 수 있습니다.</li>
+                <li>검수 완료 시 알림으로 안내합니다.</li>
                 <li>
                   검수에 통과되었다 하더라도, 2번의 신고와 또는 실제 유저 플레이 이후 문제가 발견될 경우 별도의 조치가
                   진행될 수 있습니다.
