@@ -1,152 +1,38 @@
-import { Controller, useFormContext } from "react-hook-form";
-import { GAME_CATEGORY } from "../../constant/constant";
+import { ChangeEvent, useEffect, useState } from "react";
+import { useFormContext } from "react-hook-form";
 import SpartaChipSelect from "../../spartaDesignSystem/SpartaChipSelect";
+import { GAME_CATEGORY } from "../../constant/constant";
 import { TGamePlayData, TGameUploadInput } from "../../types";
-import { ChangeEvent } from "react";
-import { extractFileName } from "../../util/extractFileName";
-
-type Props = {
-  isUploading: boolean;
-  onChangeFileHandler: (e: ChangeEvent<HTMLInputElement>) => Promise<void>;
-  previousGameData: TGamePlayData | undefined;
-};
-
-const GameUploadFields = ({ isUploading, onChangeFileHandler, previousGameData }: Props) => {
-  const { control, register } = useFormContext<TGameUploadInput>();
-
-  return (
-    <div className="flex flex-col gap-4 w-[65%] max-w-[756px]">
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-2 text-base font-semibold text-white">
-          썸네일 업로드<span className="text-body-14 text-primary-500">*필수</span>
-        </div>
-
-        <Controller
-          name="thumbnail"
-          control={control}
-          rules={{ required: true }}
-          render={({ field }) => {
-            const value = field.value;
-            return (
-              <div className="flex gap-2">
-                <div className="py-3 px-4 w-full h-[47px] bg-gray-700 border border-solid border-white rounded-md resize-none whitespace-nowrap overflow-hidden text-ellipsis text-base">
-                  {value instanceof FileList
-                    ? value[0]?.name
-                    : value
-                    ? extractFileName("thumbnail", value as string)
-                    : "1000px*800px 이하의 이미지 파일을 권장합니다."}
-                </div>
-
-                <label
-                  htmlFor="gameThumbnail"
-                  className={`flex justify-center items-center ${
-                    value ? "bg-primary-500" : "bg-gray-100"
-                  }  text-black rounded-sm text-title-16 font-bold whitespace-nowrap cursor-pointer`}
-                >
-                  <p className={`${value ? "px-5" : "px-7"}`}>{value ? "수정하기" : "업로드"}</p>
-                </label>
-
-                <input
-                  id="gameThumbnail"
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const files = e.target.files;
-                    field.onChange(files);
-                    onChangeFileHandler(e);
-                  }}
-                  className="hidden"
-                />
-              </div>
-            );
-          }}
-        />
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-2 text-base font-semibold text-white">
-          파일업로드 <span className="text-body-14 text-primary-500">*필수</span>
-        </div>
-
-        <Controller
-          name="gameFile"
-          control={control}
-          rules={{ required: true }}
-          render={({ field }) => (
-            <div className="flex gap-2">
-              <div className="py-3 px-4 w-full h-[47px] bg-gray-700 border border-solid border-white rounded-md resize-none whitespace-nowrap overflow-hidden text-ellipsis text-base">
-                {isUploading
-                  ? "파일을 검사중입니다."
-                  : field.value?.length > 0 && typeof field.value === "object"
-                  ? field.value[0]?.name
-                  : previousGameData?.gamefile
-                  ? decodeURIComponent(extractFileName("gameFile", previousGameData?.gamefile)!)
-                  : "500mb 이하 Zip파일로 업로드 해주세요."}
-              </div>
-
-              <label
-                htmlFor="gameFile"
-                className={`flex justify-center items-center ${
-                  (!isUploading && field.value?.length > 0) || previousGameData?.gamefile
-                    ? "bg-primary-500"
-                    : "bg-gray-100"
-                } text-black rounded-sm text-title-16 font-bold whitespace-nowrap cursor-pointer`}
-              >
-                {(!isUploading && field.value?.length > 0) || previousGameData?.gamefile ? (
-                  <p className="px-5">수정하기</p>
-                ) : (
-                  <p className="px-7">업로드</p>
-                )}
-              </label>
-
-              <input
-                id="gameFile"
-                type="file"
-                accept=".zip"
-                className="hidden"
-                onChange={(e) => {
-                  const files = e.target.files;
-                  if (files && files.length > 0) {
-                    field.onChange(files);
-                    onChangeFileHandler(e);
-                  }
-                }}
-              />
-            </div>
-          )}
-        />
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-2 text-base font-semibold text-white">
-          제목 <span className="text-body-14 text-primary-500">*필수</span>
-        </div>
-
-        <input
-          type="text"
-          placeholder="게임 제목을 입력해주세요."
-          {...register("title", { required: "필수" })}
-          className="py-4 px-4 w-full h-[47px] bg-gray-700 border border-solid border-white rounded-md text-base placeholder:text-gray-100"
-        />
-      </div>
-
-      <div className="flex flex-col">
-        <div className="flex items-center gap-2 text-base font-semibold text-white">
-          장르선택 <span className="text-body-14 text-primary-500">*필수</span>
-        </div>
-
-        <div className="gameUploadSelectCustom">
-          <SpartaChipSelect
-            label={""}
-            options={GAME_CATEGORY}
-            control={control}
-            {...register("category", { required: "필수" })}
-            placeHolderText={"장르를 선택해주세요."}
-          />
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default GameUploadFields;
+export function ImagePreview({ value }: { value: File | string | undefined }) {
+  const [url, setUrl] = useState("");
+  useEffect(() => {
+    if (!value) { setUrl(""); return; }
+    const next = typeof value === "string" ? value : URL.createObjectURL(value);
+    setUrl(next);
+    return () => { if (typeof value !== "string") URL.revokeObjectURL(next); };
+  }, [value]);
+  return url ? <img src={url} alt="선택한 이미지 미리보기" className="max-h-40 object-contain" /> : null;
+}
+type Props = { isUploading: boolean; onChangeFileHandler: (event: ChangeEvent<HTMLInputElement>) => Promise<void>; previousGameData: TGamePlayData | undefined };
+export default function GameUploadFields({ isUploading, onChangeFileHandler, previousGameData }: Props) {
+  const { register, control, watch, formState } = useFormContext<TGameUploadInput>();
+  const file = watch("gameFile"); const thumbnail = watch("thumbnail");
+  return <div className="flex flex-col gap-4 w-full">
+    <label htmlFor="gameThumbnail">썸네일 · 필수 · JPG/JPEG/PNG/GIF, 최대 5MB</label>
+    <input id="gameThumbnail" type="file" accept=".jpg,.jpeg,.png,.gif" aria-label={thumbnail ? "썸네일 파일 변경" : "썸네일 파일 선택"} onChange={onChangeFileHandler} />
+    <input type="hidden" {...register("thumbnail", { required: "썸네일을 선택해주세요." })} />
+    <ImagePreview value={typeof thumbnail === "string" ? thumbnail : thumbnail?.[0]} />
+    {typeof thumbnail !== "string" && <p className="break-all">{thumbnail?.[0]?.name}</p>}
+    {formState.errors.thumbnail && <p role="alert">{formState.errors.thumbnail.message}</p>}
+    <label htmlFor="gameFile">게임 파일 · ZIP 파일, 최대 500MB</label>
+    <input id="gameFile" type="file" accept=".zip" aria-label={file || previousGameData ? "게임 파일 변경" : "게임 파일 선택"} onChange={onChangeFileHandler} />
+    <p className="break-all" title={file?.name}>{isUploading ? "파일 확인 중입니다." : file ? `${file.name} · ${(file.size / 1024 / 1024).toFixed(2)}MB · ZIP · 로컬 검사 통과` : previousGameData ? "기존 게임 파일 유지" : "파일 선택"}</p>
+    <p>루트 index.html과 Build 폴더의 loader, wasm, framework, data 파일이 필요합니다. 최종 검증은 서버에서 진행합니다.</p>
+    <label htmlFor="gameTitle">제목 · 필수</label>
+    <input id="gameTitle" className="p-3 bg-gray-700" {...register("title", { validate: value => !!value.trim() || "게임 제목을 입력해주세요." })} />
+    {formState.errors.title && <p role="alert">{formState.errors.title.message}</p>}
+    <label>장르 · 필수</label>
+    <SpartaChipSelect label="장르" options={GAME_CATEGORY} control={control} {...register("category", { required: "장르를 선택해주세요." })} placeHolderText="장르를 선택해주세요." />
+    {formState.errors.category && <p role="alert">{formState.errors.category.message}</p>}
+  </div>;
+}
