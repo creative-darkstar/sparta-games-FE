@@ -118,3 +118,8 @@ export const downloadZip = async (id: number) => {
     throw error;
   }
 };
+
+export const getApprovalTask = async (taskId: string) => {
+  const response = await sparta_games_auth.get(`/directs/api/list/task-status/${encodeURIComponent(taskId)}/`);
+  return response.data.data as { status: string; result: { status?: string; game_id?: number } | null };
+};

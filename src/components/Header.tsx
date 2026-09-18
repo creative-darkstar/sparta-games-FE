@@ -41,7 +41,7 @@ const Header = () => {
   // 유저 정보
   const { userData, logout } = userStore();
 
-  const { handleAlarmClick, unreadCount } = useNotifications();
+  const { handleAlarmClick, hasUnread } = useNotifications();
   const navigate = useNavigate();
 
   // 단순 모달 데이터 config
@@ -207,13 +207,13 @@ const Header = () => {
 
             {userData && (
               <div className="relative" ref={modalRefs.alarm}>
-                <img
-                  src={unreadCount > 0 ? unReadNotifyImage : notifyImage}
+                <button aria-label={hasUnread ? "읽지 않은 알림 있음" : "알림"} onClick={onClickModalToggleHandlers.alarm}><img
+                  src={hasUnread ? unReadNotifyImage : notifyImage}
                   alt="알람 아이콘"
-                  onClick={onClickModalToggleHandlers.alarm}
                   className="w-6 h-6 cursor-pointer hover:text-primary-500"
                 />
-                {unreadCount > 0 && (
+                </button>
+                {hasUnread && (
                   <span className="absolute -top-[3px] -right-[3px] w-[5px] h-[5px] rounded-full bg-primary-500" />
                 )}
                 {modalToggles.alarm && (
