@@ -1,3 +1,5 @@
+import { useSaveVerification } from "../../../../hook/useSaveVerification";
+import { getTeamBuildDetail } from "../../../../api/teambuilding";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { useMutation } from "@tanstack/react-query";
 
@@ -24,6 +26,7 @@ export default function RecruitForm() {
   const { formState, trigger, control, handleSubmit } = methods;
 
   const navigate = useNavigate();
+  const verification = useSaveVerification();
   const location = useLocation();
   const { postDetail, isEditMode } = location.state || {};
 
@@ -83,7 +86,7 @@ export default function RecruitForm() {
     onSuccess: (data) => {
       setNoActionModalData({
         title: "글 등록 완료",
-        content: "글 등록이 완료됐습니다!",
+        content: data.status === "warning" ? "글은 등록되었지만 이미지 처리에 문제가 있습니다." : "글 등록이 완료됐습니다!",
         btn1: {
           text: "확인했습니다.",
           onClick: () => {
@@ -98,9 +101,9 @@ export default function RecruitForm() {
     },
     onError: (error: AxiosError) => {
       if (error.response && error.response.status === 400) {
-        window.alert(`${(error.response?.data as { message?: string })?.message}`);
+        verification.setMessage("요청 결과를 확인하지 못했습니다. 입력 내용을 유지한 채 목록에서 등록 여부를 확인해주세요.");
       } else {
-        window.alert("알 수 없는 오류가 발생했습니다. 잠시후에 다시 시도해주세요.");
+        verification.setMessage("요청 결과를 확인하지 못했습니다. 입력 내용을 유지한 채 목록에서 등록 여부를 확인해주세요.");
       }
     },
   });
@@ -110,7 +113,7 @@ export default function RecruitForm() {
     onSuccess: (data) => {
       setNoActionModalData({
         title: "글 수정 완료",
-        content: "글 수정이 완료됐습니다!",
+        content: data.status === "warning" ? "변경사항이 저장되었지만 이미지 처리에 문제가 있습니다." : "글 수정이 완료됐습니다!",
         btn1: {
           text: "확인했습니다.",
           onClick: () => {
@@ -123,16 +126,12 @@ export default function RecruitForm() {
 
       onClickModalToggleHandlers[SUCCESS_MODAL_ID]();
     },
-    onError: (error: AxiosError) => {
-      if (error.response && error.response.status === 400) {
-        window.alert(`${(error.response?.data as { message?: string })?.message}`);
-      } else {
-        window.alert("알 수 없는 오류가 발생했습니다. 잠시후에 다시 시도해주세요.");
-      }
+    onError: async () => {
+      await verification.verify(() => getTeamBuildDetail(postDetail.id), methods.getValues() as unknown as Record<string, unknown>);
     },
   });
 
-  const isPending = isEditMode ? updateTeamBuildingMutation.isPending : createTeamBuildingMutation.isPending;
+  const isPending = verification.checking || (isEditMode ? updateTeamBuildingMutation.isPending : createTeamBuildingMutation.isPending);
 
   const onSubmit = async (data: any) => {
     const formData = new FormData();
@@ -145,9 +144,9 @@ export default function RecruitForm() {
     formData.append("contact", data.contact);
     formData.append("content", data.content);
 
-    if (data.thumbnail && data.thumbnail.length > 0) {
+    if (data.thumbnail?.[0] instanceof File) {
       formData.append("thumbnail", data.thumbnail[0]);
-    } else {
+    } else if (!isEditMode) {
       formData.append("thumbnail_basic", "default");
     }
 
@@ -164,7 +163,8 @@ export default function RecruitForm() {
 
   return (
     <>
-      <div className="mx-auto mt-16">
+    <div className="mx-auto mt-16">
+      {verification.message && <div role="status" className="p-4 text-white bg-gray-800"><p>{verification.message}</p>{isEditMode && <button type="button" onClick={() => navigate(`/community/team-building/team-recruit/${postDetail.id}`)}>상세 확인</button>}</div>}
         <CommunityProjectTitle img={recruitImage} title={"프로젝트를 같이 만들 팀원을 구해요"} />
 
         <FormProvider {...methods}>

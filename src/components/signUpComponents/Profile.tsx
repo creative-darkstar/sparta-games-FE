@@ -1,3 +1,4 @@
+import { nicknameValidation, NICKNAME_HELP } from "../../util/accountValidation";
 import SpartaTextField from "../../spartaDesignSystem/SpartaTextField";
 import { useFormContext } from "react-hook-form";
 import SpartaChipSelect from "../../spartaDesignSystem/SpartaChipSelect";
@@ -13,22 +14,8 @@ const Profile = () => {
 
   const nickname = watch("nickname");
 
-  // 닉네임 유효성 검사 규칙(4자 이상 10자 이하의 영숫자 조합 문자열 영어 필수 숫자 필수)
-  const nicknameValidation = {
-    required: "닉네임을 입력해주세요",
-    minLength: {
-      value: 4,
-      message: "닉네임은 4자 이상이어야 합니다",
-    },
-    maxLength: {
-      value: 10,
-      message: "닉네임은 10자 이하여야 합니다",
-    },
-    pattern: {
-      value: /^[a-zA-Z0-9가-힣]*$/,
-      message: "닉네임은 10자 이하 영/한/숫자만 사용 가능합니다.",
-    },
-  };
+
+
 
   return (
     <>
@@ -38,7 +25,7 @@ const Profile = () => {
         type="medium"
         register={register("nickname", nicknameValidation)}
         subLabel={{
-          default: "4자 이상 10자 이하 영/한/숫자 사용 가능합니다.",
+          default: NICKNAME_HELP,
           error: errors.nickname?.message as string,
           pass: nickname && !errors.nickname ? "사용 가능한 닉네임입니다" : "",
         }}

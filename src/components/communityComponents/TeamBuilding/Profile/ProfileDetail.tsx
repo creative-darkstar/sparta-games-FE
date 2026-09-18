@@ -43,6 +43,8 @@ export default function ProfileDetail({ user, isMyPage }: Props) {
   const PROFILE_DELETE_SUCCESS_ID = "profileDelteSuccessModal";
   const NO_ACTION_MODAL_ID = "noActionModal";
 
+  const [deleteMessage, setDeleteMessage] = useState("");
+  const [deleted, setDeleted] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const { id } = useParams();
   const navigate = useNavigate();
@@ -68,19 +70,23 @@ export default function ProfileDetail({ user, isMyPage }: Props) {
     retry: 1,
   });
 
-  const profileData = teamBuildprofileResponse?.data;
+  const profileData = deleted ? undefined : teamBuildprofileResponse?.data;
   const userTeamBuildPost = userTeamBuildPostResponse?.data?.teambuild_posts ?? [];
   const userTeamBuildPostCount = userTeamBuildPostResponse?.pagination?.count;
 
   const onClickProfileDelete = async () => {
+    if (isPending) return;
     setIsPending(true);
-
-    const res = await deleteTeamBuildProfile(userData?.data.user_id);
-
-    if (res?.status === "success") {
-      onClickModalToggleHandlers[NO_ACTION_MODAL_ID]();
-      queryClient.removeQueries({ queryKey: ["teamBuildProfile", userData?.data.user_id] });
-    }
+    try {
+      const res = await deleteTeamBuildProfile(userData?.data.user_id);
+      if (res.status === "success" || res.status === "warning") {
+        setDeleted(true);
+        setDeleteMessage(res.status === "warning" ? "삭제되었습니다. 이미지 정리에 문제가 발생했습니다." : "프로필이 삭제되었습니다.");
+        onClickModalToggleHandlers[GAME_DELETE_CHECK_ID]();
+        void queryClient.invalidateQueries({ queryKey: ["teamBuildProfile"] });
+      } else setDeleteMessage("삭제 결과를 확인하지 못했습니다. 현재 프로필을 확인해주세요.");
+    } catch { setDeleteMessage("삭제 결과를 확인하지 못했습니다. 현재 프로필을 확인해주세요."); }
+    finally { setIsPending(false); }
   };
 
   const purpose =
@@ -113,6 +119,7 @@ export default function ProfileDetail({ user, isMyPage }: Props) {
 
   return (
     <>
+      {deleteMessage && <p role="status" className="p-4 text-white">{deleteMessage}</p>}
       <div className="flex flex-col gap-6 w-full p-11 mb-8 bg-gray-800 rounded-xl">
         <div
           className={`${

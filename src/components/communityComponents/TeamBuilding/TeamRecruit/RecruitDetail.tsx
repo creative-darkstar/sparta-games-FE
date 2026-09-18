@@ -65,9 +65,10 @@ export default function RecruitDetail() {
 
   const deleteRecruitMutation = useMutation({
     mutationFn: () => deleteTeamBuild(postDetail?.id),
-    onSuccess: () => {
+    onSuccess: (response) => {
       onClickModalToggleHandlers[CONFIRM_MODAL_ID]();
-      setNoActionModalData(noActionData.deleteRecruitSuccess);
+      setNoActionModalData({ ...noActionData.deleteRecruitSuccess, content: response.status === "warning" ? "삭제되었습니다. 이미지 정리에 문제가 발생했습니다." : "글 삭제가 완료되었습니다." });
+      void queryClient.invalidateQueries({ queryKey: ["teamBuildingPost"] });
       onClickModalToggleHandlers[SUCCESS_MODAL_ID]();
     },
     onError: (error: AxiosError<{ status: string; message?: string }>) => {
