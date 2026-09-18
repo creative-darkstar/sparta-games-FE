@@ -5,7 +5,6 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { deleteGameList, getGameDetail } from "../api/game";
 
-
 import GamePlaySection from "../components/gameDetailComponents/GamePlaySection/GamePlaySection";
 import ReviewContents from "../components/gameDetailComponents/ReviewSection/ReviewContents";
 
@@ -49,10 +48,14 @@ const GameDetail = () => {
     isLoading,
     isError,
     error,
+    refetch,
   } = useQuery<TGamePlayDataResponse, AxiosError>({
     queryKey: ["gameDetail", gameDetailId, userData?.data.user_id],
     refetchOnMount: "always",
-    refetchInterval: query => query.state.data?.data.register_state === 0 ? 30000 : false,
+    refetchInterval: (query) =>
+      query.state.data?.data.register_state === 0 && query.state.data.data.maker_data.id === userData?.data.user_id
+        ? 30000
+        : false,
     queryFn: () => getGameDetail(gameDetailId),
     retry: false,
   });
@@ -88,19 +91,36 @@ const GameDetail = () => {
   const queryClient = useQueryClient();
 
   const onClickRemoveGame = async (gamePk: number | undefined) => {
+    if (isPending) return;
     setIsPending(true);
 
     try {
-    const res = await deleteGameList(gamePk);
+      const res = await deleteGameList(gamePk);
 
-    if (res?.status === 200) {
-      setNoActionModalData(noActionData.gameDeleteSuccess);
+      if (res.status >= 200 && res.status < 300) {
+        onClickModalToggleHandlers[GAME_DELETE_CHECK_ID]();
+        setNoActionModalData(noActionData.gameDeleteSuccess);
+        onClickModalToggleHandlers[NO_ACTION_MODAL_ID]();
+        queryClient.invalidateQueries({ queryKey: ["myGameList"] });
+      }
+    } catch {
+      setNoActionModalData({
+        title: "삭제 결과 확인 필요",
+        content: "삭제 결과를 확인하지 못했습니다. 목록에서 상태를 확인해주세요.",
+        btn1: { text: "닫기", onClick: onClickModalToggleHandlers[NO_ACTION_MODAL_ID] },
+      });
       onClickModalToggleHandlers[NO_ACTION_MODAL_ID]();
-      queryClient.invalidateQueries({ queryKey: ["myGameList"] });
+    } finally {
+      setIsPending(false);
     }
-    } catch { setNoActionModalData({ title: "삭제 결과 확인 필요", content: "삭제 결과를 확인하지 못했습니다. 목록에서 상태를 확인해주세요.", btn1: { text: "닫기", onClick: onClickModalToggleHandlers[NO_ACTION_MODAL_ID] } }); onClickModalToggleHandlers[NO_ACTION_MODAL_ID](); } finally { setIsPending(false); }
   };
 
+  if (isError)
+    return (
+      <p role="alert" className="text-white">
+        게임을 불러오지 못했습니다. <button onClick={() => refetch()}>다시 시도</button>
+      </p>
+    );
   return (
     <>
       {isLoading ? (
@@ -138,7 +158,9 @@ const GameDetail = () => {
               </>
             )}
           </div>
-          {gamePlayData?.data.register_state === 2 && userData?.data.user_id === gamePlayData.data.maker_data.id && <RejectionPanel gameId={gameDetailId} />}
+          {gamePlayData?.data.register_state === 2 && userData?.data.user_id === gamePlayData.data.maker_data.id && (
+            <RejectionPanel gameId={gameDetailId} />
+          )}
           <GamePlaySection gamePlayData={gamePlayData?.data} />
           {gamePlayData?.data.register_state === 1 ? (
             <ReviewContents gamePk={gameDetailId} />
@@ -159,6 +181,7 @@ const GameDetail = () => {
         modalPurpose="delete"
       >
         <ul className="list-disc pl-5 leading-6 text-white">
+          <li>삭제 대상: {gamePlayData?.data.title}</li>
           <li>게임삭제를 진행하면 즉시 삭제됩니다.</li>
           <li>댓글 및 데이터들이 전부 삭제되므로, 댓글 등의 반응은 미리 백업을 진행해주세요!</li>
 

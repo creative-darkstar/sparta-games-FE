@@ -391,6 +391,8 @@ export type TGameAdminData = {
   };
 };
 
-export type TPaginatedResponse<T> = TApiResponse<T> & { pagination: { count: number; next: string | null; previous: string | null } };
+export type TPaginatedResponse<T> = TApiResponse<T> & {
+  pagination: { count: number; next: string | null; previous: string | null };
+};
 export type UploadStage = "idle" | "validating" | "uploading" | "submitting" | "completed" | "failed" | "uncertain";
 export type GameReviewState = 0 | 1 | 2;

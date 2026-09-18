@@ -83,13 +83,24 @@ const MyGameCard = ({ item }: Props) => {
         </div>
         <div className="flex items-center justify-between w-full">
           <div className="w-[20%]">
-            <span className={item?.register_state === 1 ? "text-primary-500" : item?.register_state === 2 ? "text-red-400" : "text-yellow-300"}>{getRegisterStateConfig().content}</span>
+            <span
+              className={
+                item?.register_state === 1
+                  ? "text-primary-500"
+                  : item?.register_state === 2
+                    ? "text-red-400"
+                    : "text-yellow-300"
+              }
+            >
+              {getRegisterStateConfig().content}
+            </span>
           </div>
           <div className="w-[78%]">
             <SpartaButton
               content={getRegisterStateConfig()?.detailContent}
               onClick={() => {
-                if (![0, 1, 2].includes(item?.register_state ?? -1)) window.location.reload(); else navigate(`/game-detail?id=${item?.id}`);
+                if (![0, 1, 2].includes(item?.register_state ?? -1)) window.location.reload();
+                else navigate(`/game-detail?id=${item?.id}`);
               }}
               size="small"
               colorType={getRegisterStateConfig().colorType}

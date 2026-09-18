@@ -24,6 +24,7 @@ import SpartaReactionModal, { TSpartaReactionModalProps } from "../../../../spar
 export default function RecruitDetail() {
   const { userData } = userStore();
   const { id } = useParams();
+  const [deleted, setDeleted] = useState(false);
   const navigate = useNavigate();
 
   const queryClient = useQueryClient();
@@ -66,9 +67,16 @@ export default function RecruitDetail() {
   const deleteRecruitMutation = useMutation({
     mutationFn: () => deleteTeamBuild(postDetail?.id),
     onSuccess: (response) => {
+      setDeleted(true);
       onClickModalToggleHandlers[CONFIRM_MODAL_ID]();
-      setNoActionModalData({ ...noActionData.deleteRecruitSuccess, content: response.status === "warning" ? "삭제되었습니다. 이미지 정리에 문제가 발생했습니다." : "글 삭제가 완료되었습니다." });
-      void queryClient.invalidateQueries({ queryKey: ["teamBuildingPost"] });
+      setNoActionModalData({
+        ...noActionData.deleteRecruitSuccess,
+        content:
+          response.status === "warning"
+            ? "삭제되었습니다. 이미지 정리에 문제가 발생했습니다."
+            : "글 삭제가 완료되었습니다.",
+      });
+      void queryClient.invalidateQueries({ queryKey: ["teamBuilding"] });
       onClickModalToggleHandlers[SUCCESS_MODAL_ID]();
     },
     onError: (error: AxiosError<{ status: string; message?: string }>) => {
@@ -222,7 +230,7 @@ export default function RecruitDetail() {
 
   return (
     <>
-      <div className="w-[988px] mx-auto">
+      <div hidden={deleted} className="w-[988px] mx-auto">
         <RecruitDetailHeader
           userData={userData?.data}
           postDetail={postDetail}
@@ -253,10 +261,10 @@ export default function RecruitDetail() {
                 noActionModalData.title === noActionData.deleteRecruiConfirm.title
                   ? deleteRecruitMutation.isPending
                   : noActionModalData.title === noActionData.closeRecruit.title
-                  ? closeRecruitMutation.isPending
-                  : noActionModalData.title === "댓글 삭제"
-                  ? deleteCommentsMutation.isPending
-                  : false,
+                    ? closeRecruitMutation.isPending
+                    : noActionModalData.title === "댓글 삭제"
+                      ? deleteCommentsMutation.isPending
+                      : false,
             }}
             btn2={
               noActionModalData?.btn2 && {
@@ -269,7 +277,9 @@ export default function RecruitDetail() {
 
           <SpartaReactionModal
             isOpen={modalToggles[SUCCESS_MODAL_ID]}
-            onClose={onClickModalToggleHandlers[SUCCESS_MODAL_ID]}
+            onClose={() =>
+              deleted ? navigate("/community/team-building") : onClickModalToggleHandlers[SUCCESS_MODAL_ID]()
+            }
             modalId={SUCCESS_MODAL_ID}
             title={noActionModalData.title || ""}
             content={noActionModalData.content || ""}

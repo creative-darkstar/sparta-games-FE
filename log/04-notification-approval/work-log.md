@@ -7,3 +7,18 @@
 - 근거: BE refact/testing qnas/views.py 및 qnas/tasks.py에서 task 응답 및 성공 result 확인.
 - 기대 효과: 접수를 승인완료로 오인하지 않고 비동기 검수 결과가 관련 캐시에 반영됨.
 - 검증: 네트워크/시간 모킹은 6단계 예정. 실제 worker 운영 여부는 별도 환경 확인 필요.
+
+## 완료 시각 및 파일별 변경 범위
+- 단계 커밋: `43c63f5`
+- 단계 완료 시각: 2026-09-18T20:52:50+09:00
+- A: 생성, M: 수정. 기존 사용자 문서와 BE 소스는 변경하지 않음.
+
+```text
+M	src/api/direct.ts
+M	src/components/Header.tsx
+M	src/components/adminComponents/AdminGameApproveModal.tsx
+M	src/components/headerComponents/AlarmModal.tsx
+M	src/hook/useNotifications.ts
+```
+
+이 단계의 구현 이후 발견한 접근성·흐름 보완과 최종 검증은 [6단계 로그](../06-validation/work-log.md)에 함께 기록한다. 단계별 커밋은 구현 경계를 보존하며 최종 실행 검증의 기준은 전체 6단계 반영본이다.

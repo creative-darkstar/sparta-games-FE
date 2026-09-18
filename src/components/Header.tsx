@@ -207,11 +207,15 @@ const Header = () => {
 
             {userData && (
               <div className="relative" ref={modalRefs.alarm}>
-                <button aria-label={hasUnread ? "읽지 않은 알림 있음" : "알림"} onClick={onClickModalToggleHandlers.alarm}><img
-                  src={hasUnread ? unReadNotifyImage : notifyImage}
-                  alt="알람 아이콘"
-                  className="w-6 h-6 cursor-pointer hover:text-primary-500"
-                />
+                <button
+                  aria-label={hasUnread ? "읽지 않은 알림 있음" : "알림"}
+                  onClick={onClickModalToggleHandlers.alarm}
+                >
+                  <img
+                    src={hasUnread ? unReadNotifyImage : notifyImage}
+                    alt="알람 아이콘"
+                    className="w-6 h-6 cursor-pointer hover:text-primary-500"
+                  />
                 </button>
                 {hasUnread && (
                   <span className="absolute -top-[3px] -right-[3px] w-[5px] h-[5px] rounded-full bg-primary-500" />

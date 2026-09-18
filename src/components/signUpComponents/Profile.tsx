@@ -14,9 +14,6 @@ const Profile = () => {
 
   const nickname = watch("nickname");
 
-
-
-
   return (
     <>
       <p className="text-primary-400 font-DungGeunMo text-[24px]">프로필 정보</p>

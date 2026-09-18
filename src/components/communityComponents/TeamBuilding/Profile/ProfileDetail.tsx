@@ -59,17 +59,29 @@ export default function ProfileDetail({ user, isMyPage }: Props) {
     NO_ACTION_MODAL_ID,
   ]);
 
-  const { data: userTeamBuildPostResponse } = useQuery<TTeamBuildPostResponse>({
+  const {
+    data: userTeamBuildPostResponse,
+    isPending: postsPending,
+    isError: postsError,
+    refetch: reloadPosts,
+  } = useQuery<TTeamBuildPostResponse>({
     queryKey: ["userteamBuildingPost", Number(id)],
     queryFn: () => getUserTeambuildPosts(Number(id)),
   });
 
-  const { data: teamBuildprofileResponse } = useQuery<TTeamBuildProfileUserResponse>({
+  const {
+    data: teamBuildprofileResponse,
+    isPending: profilePending,
+    isError: profileError,
+    error: profileFailure,
+    refetch: reloadProfile,
+  } = useQuery<TTeamBuildProfileUserResponse>({
     queryKey: ["teamBuildProfile", Number(id)],
     queryFn: () => getTeamBuildProfileByUserId(Number(id)),
     retry: 1,
   });
 
+  const isMissingProfile = (profileFailure as { response?: { status?: number } })?.response?.status === 404;
   const profileData = deleted ? undefined : teamBuildprofileResponse?.data;
   const userTeamBuildPost = userTeamBuildPostResponse?.data?.teambuild_posts ?? [];
   const userTeamBuildPostCount = userTeamBuildPostResponse?.pagination?.count;
@@ -81,45 +93,54 @@ export default function ProfileDetail({ user, isMyPage }: Props) {
       const res = await deleteTeamBuildProfile(userData?.data.user_id);
       if (res.status === "success" || res.status === "warning") {
         setDeleted(true);
-        setDeleteMessage(res.status === "warning" ? "삭제되었습니다. 이미지 정리에 문제가 발생했습니다." : "프로필이 삭제되었습니다.");
+        setDeleteMessage(
+          res.status === "warning" ? "삭제되었습니다. 이미지 정리에 문제가 발생했습니다." : "프로필이 삭제되었습니다.",
+        );
         onClickModalToggleHandlers[GAME_DELETE_CHECK_ID]();
         void queryClient.invalidateQueries({ queryKey: ["teamBuildProfile"] });
       } else setDeleteMessage("삭제 결과를 확인하지 못했습니다. 현재 프로필을 확인해주세요.");
-    } catch { setDeleteMessage("삭제 결과를 확인하지 못했습니다. 현재 프로필을 확인해주세요."); }
-    finally { setIsPending(false); }
+    } catch {
+      setDeleteMessage("삭제 결과를 확인하지 못했습니다. 현재 프로필을 확인해주세요.");
+    } finally {
+      setIsPending(false);
+    }
   };
 
   const purpose =
     profileData?.purpose === "PORTFOLIO"
       ? "포트폴리오"
       : profileData?.purpose === "CONTEST"
-      ? "공모전"
-      : profileData?.purpose === "STUDY"
-      ? "스터디"
-      : "상용화";
+        ? "공모전"
+        : profileData?.purpose === "STUDY"
+          ? "스터디"
+          : "상용화";
 
   const duration =
     profileData?.duration === "3M"
       ? "3개월 이내"
       : profileData?.duration === "6M"
-      ? "6개월 이내"
-      : profileData?.duration === "1Y"
-      ? "1년 이내"
-      : "1년 이상";
+        ? "6개월 이내"
+        : profileData?.duration === "1Y"
+          ? "1년 이내"
+          : "1년 이상";
 
   const meeting_type =
     profileData?.meeting_type === "OFFLINE"
       ? "오프라인"
       : profileData?.meeting_type === "ONLINE"
-      ? "온라인"
-      : "온라인/ 오프라인 둘 다 가능";
+        ? "온라인"
+        : "온라인/ 오프라인 둘 다 가능";
 
   const carrer =
     profileData?.career === "STUDENT" ? "대학생" : profileData?.career === "JOBSEEKER" ? "취준생" : "현직자";
 
   return (
     <>
-      {deleteMessage && <p role="status" className="p-4 text-white">{deleteMessage}</p>}
+      {deleteMessage && (
+        <p role="status" className="p-4 text-white">
+          {deleteMessage}
+        </p>
+      )}
       <div className="flex flex-col gap-6 w-full p-11 mb-8 bg-gray-800 rounded-xl">
         <div
           className={`${
@@ -140,22 +161,36 @@ export default function ProfileDetail({ user, isMyPage }: Props) {
           )}
         </div>
 
-        <div className="grid grid-cols-3 gap-5">
-          <RenderPosts
-            posts={userTeamBuildPost}
-            searchPosts={undefined}
-            searchKeyword=""
-            userData={undefined}
-            noPostsMessage="아직 등록된 팀빌딩 모집글이 없습니다."
-            noSearchResultsMessage="검색 결과가 없습니다."
-            cardType="teamBuild"
-          />
-        </div>
+        {postsPending && <p role="status">팀빌딩 활동을 불러오는 중입니다.</p>}
+        {postsError && (
+          <p role="alert">
+            팀빌딩 활동을 불러오지 못했습니다. <button onClick={() => reloadPosts()}>다시 시도</button>
+          </p>
+        )}
+        {!postsPending && !postsError && (
+          <div className="grid grid-cols-3 gap-5">
+            <RenderPosts
+              posts={userTeamBuildPost}
+              searchPosts={undefined}
+              searchKeyword=""
+              userData={undefined}
+              noPostsMessage="아직 등록된 팀빌딩 모집글이 없습니다."
+              noSearchResultsMessage="검색 결과가 없습니다."
+              cardType="teamBuild"
+            />
+          </div>
+        )}
       </div>
 
       <div className="bg-gray-800 rounded-xl p-11 flex flex-col gap-6 w-full">
         {/* 내 팀빌팅 프로필이 없는 경우 */}
-        {!profileData && isMyPage && (
+        {profilePending && !deleted && <p role="status">프로필을 불러오는 중입니다.</p>}
+        {profileError && !deleted && !isMissingProfile && (
+          <p role="alert">
+            프로필을 불러오지 못했습니다. <button onClick={() => reloadProfile()}>다시 시도</button>
+          </p>
+        )}
+        {!profileData && isMyPage && (deleted || (!profilePending && (!profileError || isMissingProfile))) && (
           <>
             <div className="flex items-start">
               <p className="font-DungGeunMo text-heading-32 text-white font-normal">{user?.nickname}의 커리어 프로필</p>
@@ -193,8 +228,8 @@ export default function ProfileDetail({ user, isMyPage }: Props) {
                     profileData?.profile_image === null
                       ? defaultProfile
                       : import.meta.env.VITE_DEPLOYMENT_MODE === "dev"
-                      ? import.meta.env.VITE_PROXY_HOST.replace(/\/$/, "") + (profileData?.profile_image || "")
-                      : profileData?.profile_image || ""
+                        ? import.meta.env.VITE_PROXY_HOST.replace(/\/$/, "") + (profileData?.profile_image || "")
+                        : profileData?.profile_image || ""
                   }
                   alt="프로필 이미지"
                 />
@@ -263,12 +298,12 @@ export default function ProfileDetail({ user, isMyPage }: Props) {
                               type === "portfolio"
                                 ? portfolioImage
                                 : type === "link"
-                                ? linkImage
-                                : type === "github"
-                                ? githubImage
-                                : type === "notion"
-                                ? notionImage
-                                : ""
+                                  ? linkImage
+                                  : type === "github"
+                                    ? githubImage
+                                    : type === "notion"
+                                      ? notionImage
+                                      : ""
                             }
                             alt={`${type} 링크`}
                           />
@@ -339,14 +374,15 @@ export default function ProfileDetail({ user, isMyPage }: Props) {
         )}
       </div>
 
-      <p
+      <button
+        type="button"
         onClick={() => onClickModalToggleHandlers[GAME_DELETE_CHECK_ID]()}
         className={`mt-4 text-right text-error-default underline cursor-pointer text-lg ${
           isMyPage && profileData ? "block" : "hidden"
         }`}
       >
         커리어 프로필 삭제하기
-      </p>
+      </button>
 
       <SpartaPhraseCheckModal
         isOpen={modalToggles[GAME_DELETE_CHECK_ID]}
@@ -357,9 +393,10 @@ export default function ProfileDetail({ user, isMyPage }: Props) {
         modalPurpose="profileDelete"
       >
         <ul className="list-disc pl-5 leading-6 text-white">
+          <li>삭제 대상: {profileData?.title}</li>
           <li>일부만 수정하고 싶으신 경우, 수정 기능을 이용해주세요!</li>
           <li>
-            수정을 하시기 위해서는 <b className="text-error-default ">‘프로필을 삭제하겠습니다’</b>를 입력해주세요!
+            삭제를 하시기 위해서는 <b className="text-error-default ">‘프로필을 삭제하겠습니다’</b>를 입력해주세요!
           </li>
         </ul>
       </SpartaPhraseCheckModal>

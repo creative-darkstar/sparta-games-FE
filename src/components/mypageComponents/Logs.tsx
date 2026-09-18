@@ -37,10 +37,19 @@ const Logs = (props: TLogsProps) => {
 
   return (
     <div className="flex flex-col gap-7">
+      {myLikedData.isError && <button onClick={() => myLikedData.refetch()}>즐겨찾기 다시 시도</button>}
+      {myRecentGameData.isError && <button onClick={() => myRecentGameData.refetch()}>최근 플레이 다시 시도</button>}
       {/* 즐겨찾는 게임 */}
       {
         <GameCardList
           data={likedData}
+          emptyText={
+            myLikedData.isPending
+              ? "즐겨찾기를 불러오는 중입니다."
+              : myLikedData.isError
+                ? "즐겨찾기를 불러오지 못했습니다."
+                : "즐겨찾기한 게임이 없습니다."
+          }
           maxNum={3}
           containerClassName={LogsClassName}
           noNavigation={(likedData?.length ?? 0) < 4}
@@ -59,6 +68,13 @@ const Logs = (props: TLogsProps) => {
       {
         <GameCardList
           data={recentGameData || []}
+          emptyText={
+            myRecentGameData.isPending
+              ? "최근 플레이를 불러오는 중입니다."
+              : myRecentGameData.isError
+                ? "최근 플레이를 불러오지 못했습니다."
+                : "최근 플레이한 게임이 없습니다."
+          }
           maxNum={3}
           containerClassName={LogsClassName}
           noNavigation={(recentGameData?.length ?? 0) < 4}

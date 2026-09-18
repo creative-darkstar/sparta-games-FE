@@ -1,21 +1,15 @@
-import { useState } from "react";
-
-import closeBtnPrimary from "../../src/assets/common/closeBtn.svg";
-import closeBtnAlert from "../../src/assets/common/closeBtnAlert.svg";
-import closeBtnError from "../../src/assets/common/closeBtnError.svg";
-import useModalToggles from "../hook/useModalToggles";
-
+import { ReactNode, useEffect, useState } from "react";
+import SpartaModal from "./SpartaModal";
 type Props = {
   isOpen: boolean;
   modalId: string;
-  isPending?: boolean; // 로딩 중인지 여부 (게임 업로드 용)
+  isPending?: boolean;
   onClose: () => void;
-  onClickEvent: () => void | Promise<void>; // // 모달의 확인 버튼 클릭 시 실행될 함수. 비동기 API 호출 함수일 경우 async/await로 감싸서 넘겨줄 것
-  children: React.ReactNode;
-  modalPurpose: "upload" | "edit" | "delete" | "profileDelete";
+  onClickEvent: () => void | Promise<void>;
+  children: ReactNode;
+  modalPurpose: "delete" | "profileDelete";
   closeOnClickOutside?: boolean;
 };
-
 export default function SpartaPhraseCheckModal({
   isOpen,
   modalId,
@@ -26,132 +20,48 @@ export default function SpartaPhraseCheckModal({
   modalPurpose,
   closeOnClickOutside = false,
 }: Props) {
-  const baseDeleteStyle = {
-    btnActiveBgColor: "bg-error-default",
-    borderStyle: "border-error-default",
-    textStyle: "text-error-default",
-    closeBtnImage: closeBtnError,
+  const [input, setInput] = useState("");
+  useEffect(() => {
+    if (isOpen) setInput("");
+  }, [isOpen]);
+  const noun = modalPurpose === "delete" ? "게임" : "프로필";
+  const phrase = `${noun}을 삭제하겠습니다`;
+  const close = () => {
+    if (!isPending) onClose();
   };
-
-  const textDict = {
-    upload: {
-      title: "게임을 등록하기 전에 확인해주세요!",
-      requiredPhrase: "즐거운 게임세상 스파르타게임즈!",
-      btnConfirmText: "문구가 확인되었습니다. 게임 등록을 진행합니다.",
-    },
-    edit: {
-      title: "수정하기 전 확인해주세요!",
-      requiredPhrase: "게임을 수정하겠습니다",
-      btnConfirmText: "문구가 확인되었습니다. 게임 수정을 진행합니다.",
-    },
-    delete: {
-      title: "게임을 정말 삭제하시겠어요?",
-      requiredPhrase: "게임을 삭제하겠습니다",
-      btnConfirmText: "문구가 확인되었습니다. 게임 삭제를 진행합니다.",
-    },
-    profileDelete: {
-      title: "팀빌딩 프로필을 삭제하시겠어요?",
-      requiredPhrase: "프로필을 삭제하겠습니다",
-      btnConfirmText: "문구가 확인되었습니다. 프로필 삭제를 진행합니다.",
-    },
-  };
-
-  const styleDict = {
-    upload: {
-      btnActiveBgColor: "bg-primary-500",
-      borderStyle: "border-primary-500",
-      textStyle: "text-primary-500",
-      closeBtnImage: closeBtnPrimary,
-    },
-    edit: {
-      btnActiveBgColor: "bg-alert-default",
-      borderStyle: "border-alert-default",
-      textStyle: "text-alert-default",
-      closeBtnImage: closeBtnAlert,
-    },
-    delete: baseDeleteStyle,
-    profileDelete: baseDeleteStyle,
-  };
-  const [inputValue, setInputValue] = useState("");
-
-  const { modalRefs } = useModalToggles([modalId]);
-
-  if (!isOpen) return null;
-
-  const isPhraseCorrect = inputValue === textDict[modalPurpose]["requiredPhrase"];
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(e.target.value);
-  };
-
-  const onClickConfirm = () => {
-    if (isPending) return;
-
-    onClickEvent();
-  };
-
-  const handleOverlayClick = () => {
-    if (closeOnClickOutside) {
-      onClose();
-    }
-  };
-
   return (
-    <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 "
-      onClick={handleOverlayClick}
+    <SpartaModal
+      isOpen={isOpen}
+      modalId={modalId}
+      onClose={close}
+      title={`${noun}을 정말 삭제하시겠어요?`}
+      type="error"
+      closeOnClickOutside={closeOnClickOutside}
     >
-      <div
-        ref={modalRefs[modalId]}
-        className={`fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 p-7 border ${styleDict[modalPurpose]["borderStyle"]} border-solid rounded-xl bg-gray-800 outline-none`}
-      >
-        <div className="flex flex-col gap-4 w-[700px]">
-          <div className="flex justify-between items-center mb-2">
-            <p className={`text-xl font-DungGeunMo ${styleDict[modalPurpose]["textStyle"]}`}>
-              {textDict[modalPurpose]["title"]}
-            </p>
-            <img
-              onClick={onClose}
-              className="w-7 h-7 cursor-pointer"
-              src={styleDict[modalPurpose]["closeBtnImage"]}
-              alt="닫기"
-            />
-          </div>
-        </div>
-
-        <div>{children}</div>
-
-        <div className="mt-4 mb-3 p-3 border border-solid border-gray-100 rounded-md">
-          <input
-            className="w-full bg-transparent text-sm text-gray-100 outline-none"
-            type="text"
-            value={inputValue}
-            onChange={handleInputChange}
-            placeholder={textDict[modalPurpose]["requiredPhrase"]}
-            disabled={isPending}
-          />
-        </div>
-
-        <div
-          className={`flex h-12 rounded-md ${
-            isPhraseCorrect && !isPending ? styleDict[modalPurpose]["btnActiveBgColor"] : "bg-gray-400"
-          } text-center font-bold`}
+      <div className="w-[700px] max-w-full text-white space-y-4">
+        {children}
+        <label className="block" htmlFor={`${modalId}-phrase`}>
+          삭제 확인 문구: {phrase}
+        </label>
+        <input
+          id={`${modalId}-phrase`}
+          className="w-full p-3 bg-gray-700 border rounded"
+          value={input}
+          onChange={(event) => setInput(event.target.value)}
+          placeholder={phrase}
+          disabled={isPending}
+        />
+        <button
+          type="button"
+          className="w-full p-3 rounded bg-error-default disabled:opacity-50"
+          disabled={isPending || input !== phrase}
+          onClick={() => {
+            if (!isPending && input === phrase) void onClickEvent();
+          }}
         >
-          {isPhraseCorrect ? (
-            <button
-              onClick={onClickConfirm}
-              className={`w-full ${isPending ? "cursor-wait" : "cursor-pointer"}`}
-              disabled={isPending}
-            >
-              {isPending ? "처리 중입니다." : textDict[modalPurpose]["btnConfirmText"]}
-            </button>
-          ) : (
-            <button disabled className="w-full">
-              문구를 올바르게 입력해주세요.
-            </button>
-          )}
-        </div>
+          {isPending ? "처리 중입니다." : input === phrase ? `${noun} 삭제` : "문구를 올바르게 입력해주세요."}
+        </button>
       </div>
-    </div>
+    </SpartaModal>
   );
 }

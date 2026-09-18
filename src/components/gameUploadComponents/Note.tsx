@@ -25,17 +25,22 @@ const Note = ({ onClickHandler, state }: Props) => {
     <section>
       <div
         className={`overflow-hidden transition-all duration-500 
-          ${isExpanded && allChecked ? "max-h-0 opacity-0" : "max-h-[500px] opacity-100"}
+          ${!isExpanded ? "hidden" : "opacity-100"}
          `}
       >
         <div className="flex flex-col gap-3 py-5 px-10 bg-[#171717] rounded-[20px]">
           {allChecked ? (
             <div className="flex justify-between">
               <p className="text-lg font-medium text-[#05F500]">약관을 전부 확인하셨습니다.</p>
-              <div onClick={toggleTerms} className="flex items-center gap-2 cursor-pointer">
+              <button
+                type="button"
+                aria-expanded={isExpanded}
+                onClick={toggleTerms}
+                className="flex items-center gap-2 cursor-pointer"
+              >
                 <span className="text-gray-100">약관 접기</span>
                 <AiFillCaretUp size={22} color={"#BFBFBF"} />
-              </div>
+              </button>
             </div>
           ) : (
             <p className="text-lg font-bold text-[#FF5C5C]">게임 업로드 전, 아래 유의사항을 반드시 확인하여 주세요.</p>
@@ -50,7 +55,7 @@ const Note = ({ onClickHandler, state }: Props) => {
                   디벨롭 할 수 있게 합니다.
                 </li>
               </ol>
-              <CheckBox check={state[1]} onClickHandler={() => onClickHandler(1)} />
+              <CheckBox check={state[1]} label="유의사항 1 동의" onClickHandler={() => onClickHandler(1)} />
             </li>
             <hr className="w-full h-[1px] bg-gray-500 my-2" />
             <li className="relative">
@@ -67,7 +72,7 @@ const Note = ({ onClickHandler, state }: Props) => {
                 <li>현금성 도박 또는 사기가 포함되거나 유사한 컨텐츠를 업로드하는 경우</li>
                 <li>오해의 소지가 있는 컨텐츠를 업로드 하는 경우</li>
               </ol>
-              <CheckBox check={state[2]} onClickHandler={() => onClickHandler(2)} />
+              <CheckBox check={state[2]} label="유의사항 2 동의" onClickHandler={() => onClickHandler(2)} />
             </li>
             <hr className="w-full h-[1px] bg-gray-500 my-2" />
             <li className="relative">
@@ -79,19 +84,24 @@ const Note = ({ onClickHandler, state }: Props) => {
                   진행될 수 있습니다.
                 </li>
               </ol>
-              <CheckBox check={state[3]} onClickHandler={() => onClickHandler(3)} />
+              <CheckBox check={state[3]} label="유의사항 3 동의" onClickHandler={() => onClickHandler(3)} />
             </li>
           </ol>
         </div>
       </div>
 
-      {allChecked && isExpanded && (
+      {!isExpanded && (
         <div className="flex justify-between items-center mt-2 px-10 py-5 rounded-3xl bg-gray-800">
           <p className="text-lg font-medium text-primary-500">업로드 준비가 완료되었습니다.</p>
-          <div onClick={toggleTerms} className="flex items-center gap-2 cursor-pointer">
+          <button
+            type="button"
+            aria-expanded={isExpanded}
+            onClick={toggleTerms}
+            className="flex items-center gap-2 cursor-pointer"
+          >
             <span className="text-gray-100">약관 다시 확인하기</span>
             <AiFillCaretDown size={22} color={"#BFBFBF"} />
-          </div>
+          </button>
         </div>
       )}
     </section>

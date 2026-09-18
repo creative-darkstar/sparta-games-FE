@@ -44,7 +44,6 @@ const AccountModal = ({ onSuccess }: Props) => {
 
   // 비밀번호 유효성 검사 규칙
 
-
   // 비밀번호 확인 유효성 검사 규칙
   const passwordCheckValidation = {
     required: "비밀번호를 다시 입력해주세요",

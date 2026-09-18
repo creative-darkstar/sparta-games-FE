@@ -1,3 +1,4 @@
+import DOMPurify from "dompurify";
 import SpartaModal from "./SpartaModal";
 import SpartaButton from "./SpartaButton";
 import type { TModalProps } from "./SpartaModal";
@@ -31,10 +32,10 @@ const SpartaReactionModal = ({
     type === "primary"
       ? "text-primary-400"
       : type === "alert"
-      ? "text-alert-default"
-      : type === "error"
-      ? "text-error-default"
-      : "text-white";
+        ? "text-alert-default"
+        : type === "error"
+          ? "text-error-default"
+          : "text-white";
 
   return (
     <SpartaModal
@@ -48,7 +49,9 @@ const SpartaReactionModal = ({
         <div className={`text-[18px] font-medium ${titleColor} font-DungGeunMo`}>{title}</div>
         <div
           className="text-[16px] font-light leading-7 my-2 text-white text-center"
-          dangerouslySetInnerHTML={{ __html: content }}
+          dangerouslySetInnerHTML={{
+            __html: DOMPurify.sanitize(content, { ALLOWED_TAGS: ["br", "b", "strong", "p"], ALLOWED_ATTR: [] }),
+          }}
         ></div>
         {btn2 && (
           <SpartaButton content={btn2.text} onClick={btn2.onClick} type={"filled"} colorType="grey" size="small" />

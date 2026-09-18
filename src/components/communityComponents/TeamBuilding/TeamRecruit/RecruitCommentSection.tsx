@@ -132,8 +132,8 @@ export default function RecruitCommentSection({ userId, postDetail, onClickDelet
               newComment?.length > 1000
                 ? "border-error-default"
                 : newComment?.length > 0
-                ? "border-primary-500"
-                : "border-gray-400"
+                  ? "border-primary-500"
+                  : "border-gray-400"
             } p-2 m-h-32 rounded-lg`}
           >
             <textarea
@@ -192,8 +192,8 @@ export default function RecruitCommentSection({ userId, postDetail, onClickDelet
                               comment?.author_data.image === ""
                                 ? defaultProfile
                                 : import.meta.env.VITE_DEPLOYMENT_MODE === "dev"
-                                ? import.meta.env.VITE_PROXY_HOST.replace(/\/$/, "") + comment?.author_data.image
-                                : comment?.author_data.image
+                                  ? import.meta.env.VITE_PROXY_HOST.replace(/\/$/, "") + comment?.author_data.image
+                                  : comment?.author_data.image
                             }
                             className="w-8 h-8 border-[1px] border-solid border-gray-400 rounded-full"
                           />
@@ -260,8 +260,8 @@ export default function RecruitCommentSection({ userId, postDetail, onClickDelet
                             comment?.author_data.image === ""
                               ? defaultProfile
                               : import.meta.env.VITE_DEPLOYMENT_MODE === "dev"
-                              ? import.meta.env.VITE_PROXY_HOST.replace(/\/$/, "") + comment?.author_data.image
-                              : comment?.author_data.image
+                                ? import.meta.env.VITE_PROXY_HOST.replace(/\/$/, "") + comment?.author_data.image
+                                : comment?.author_data.image
                           }
                           className="w-8 h-8 border-[1px] border-solid border-gray-400 rounded-full"
                         />
@@ -315,7 +315,7 @@ export default function RecruitCommentSection({ userId, postDetail, onClickDelet
         </div>
       </div>
       <SpartaPagination
-        dataTotalCount={data?.pagination.count}
+        dataTotalCount={data?.pagination?.count}
         countPerPage={COUNT_PER_PAGE}
         onChangePage={(e, page) => setPage(page)}
       />

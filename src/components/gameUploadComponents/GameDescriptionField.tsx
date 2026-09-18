@@ -1,11 +1,32 @@
+import { useEffect, useRef } from "react";
 import { useFormContext } from "react-hook-form";
 import ReactQuill from "react-quill";
 import { TGameUploadInput } from "../../types";
 import "react-quill/dist/quill.snow.css";
 
-const GameDescriptionField = () => {
+const GameDescriptionField = ({ disabled = false }: { disabled?: boolean }) => {
   const { watch, setValue } = useFormContext<TGameUploadInput>();
 
+  const container = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const labels: Record<string, string> = {
+      bold: "굵게",
+      italic: "기울임",
+      underline: "밑줄",
+      list: "목록",
+      color: "글자 색",
+      background: "배경 색",
+    };
+    container.current?.querySelectorAll<HTMLButtonElement>(".ql-toolbar button").forEach((button) => {
+      const key = Object.keys(labels).find((name) => button.classList.contains("ql-" + name));
+      if (key) button.setAttribute("aria-label", labels[key] + (button.value ? " " + button.value : ""));
+    });
+    container.current?.querySelectorAll<HTMLElement>(".ql-picker-label").forEach((picker) => {
+      if (picker.parentElement?.classList.contains("ql-color")) picker.setAttribute("aria-label", "글자 색");
+      if (picker.parentElement?.classList.contains("ql-background")) picker.setAttribute("aria-label", "배경 색");
+    });
+    container.current?.querySelector(".ql-editor")?.setAttribute("aria-label", "게임 설명");
+  }, []);
   const editorContent = watch("content");
 
   const handleEditorChange = (editorState: string) => {
@@ -15,16 +36,17 @@ const GameDescriptionField = () => {
     const isEmptyContent = tempContainer.innerHTML.trim() === "<p><br></p>";
     const cleanedContent = isEmptyContent ? "" : editorState;
 
-    setValue("content", cleanedContent, { shouldValidate: true });
+    setValue("content", cleanedContent, { shouldValidate: true, shouldDirty: true });
   };
 
   return (
-    <div className="flex flex-col gap-2 mb-8 formContent">
+    <div ref={container} className="flex flex-col gap-2 mb-8 formContent">
       <div className="flex items-center gap-2 text-base font-semibold text-white">
         게임설명 <p className="text-body-14 text-primary-500">*필수</p>
       </div>
 
       <ReactQuill
+        readOnly={disabled}
         theme="snow"
         value={editorContent}
         onChange={handleEditorChange}

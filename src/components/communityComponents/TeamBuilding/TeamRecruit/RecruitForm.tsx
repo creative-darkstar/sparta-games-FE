@@ -86,7 +86,8 @@ export default function RecruitForm() {
     onSuccess: (data) => {
       setNoActionModalData({
         title: "글 등록 완료",
-        content: data.status === "warning" ? "글은 등록되었지만 이미지 처리에 문제가 있습니다." : "글 등록이 완료됐습니다!",
+        content:
+          data.status === "warning" ? "글은 등록되었지만 이미지 처리에 문제가 있습니다." : "글 등록이 완료됐습니다!",
         btn1: {
           text: "확인했습니다.",
           onClick: () => {
@@ -101,9 +102,13 @@ export default function RecruitForm() {
     },
     onError: (error: AxiosError) => {
       if (error.response && error.response.status === 400) {
-        verification.setMessage("요청 결과를 확인하지 못했습니다. 입력 내용을 유지한 채 목록에서 등록 여부를 확인해주세요.");
+        verification.setMessage(
+          "요청 결과를 확인하지 못했습니다. 입력 내용을 유지한 채 목록에서 등록 여부를 확인해주세요.",
+        );
       } else {
-        verification.setMessage("요청 결과를 확인하지 못했습니다. 입력 내용을 유지한 채 목록에서 등록 여부를 확인해주세요.");
+        verification.setMessage(
+          "요청 결과를 확인하지 못했습니다. 입력 내용을 유지한 채 목록에서 등록 여부를 확인해주세요.",
+        );
       }
     },
   });
@@ -113,7 +118,10 @@ export default function RecruitForm() {
     onSuccess: (data) => {
       setNoActionModalData({
         title: "글 수정 완료",
-        content: data.status === "warning" ? "변경사항이 저장되었지만 이미지 처리에 문제가 있습니다." : "글 수정이 완료됐습니다!",
+        content:
+          data.status === "warning"
+            ? "변경사항이 저장되었지만 이미지 처리에 문제가 있습니다."
+            : "글 수정이 완료됐습니다!",
         btn1: {
           text: "확인했습니다.",
           onClick: () => {
@@ -127,13 +135,18 @@ export default function RecruitForm() {
       onClickModalToggleHandlers[SUCCESS_MODAL_ID]();
     },
     onError: async () => {
-      await verification.verify(() => getTeamBuildDetail(postDetail.id), methods.getValues() as unknown as Record<string, unknown>);
+      await verification.verify(
+        () => getTeamBuildDetail(postDetail.id),
+        methods.getValues() as unknown as Record<string, unknown>,
+      );
     },
   });
 
-  const isPending = verification.checking || (isEditMode ? updateTeamBuildingMutation.isPending : createTeamBuildingMutation.isPending);
+  const isPending =
+    verification.checking || (isEditMode ? updateTeamBuildingMutation.isPending : createTeamBuildingMutation.isPending);
 
   const onSubmit = async (data: any) => {
+    if (isPending) return;
     const formData = new FormData();
 
     formData.append("title", data.title);
@@ -163,8 +176,17 @@ export default function RecruitForm() {
 
   return (
     <>
-    <div className="mx-auto mt-16">
-      {verification.message && <div role="status" className="p-4 text-white bg-gray-800"><p>{verification.message}</p>{isEditMode && <button type="button" onClick={() => navigate(`/community/team-building/team-recruit/${postDetail.id}`)}>상세 확인</button>}</div>}
+      <div className="mx-auto mt-16">
+        {verification.message && (
+          <div role="status" className="p-4 text-white bg-gray-800">
+            <p>{verification.message}</p>
+            {isEditMode && (
+              <button type="button" onClick={() => navigate(`/community/team-building/team-recruit/${postDetail.id}`)}>
+                상세 확인
+              </button>
+            )}
+          </div>
+        )}
         <CommunityProjectTitle img={recruitImage} title={"프로젝트를 같이 만들 팀원을 구해요"} />
 
         <FormProvider {...methods}>
