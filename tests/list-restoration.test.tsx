@@ -1,0 +1,22 @@
+import { expect, it, vi } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import MyGame from "../src/components/mypageComponents/MyGame";
+import { getUserGameList, getUserGameMadeList } from "../src/api/user";
+import { TUserData } from "../src/types";
+vi.mock("../src/api/user", () => ({ getUserGameList: vi.fn(), getUserGameMadeList: vi.fn() }));
+vi.mock("../src/components/mypageComponents/MyGameCard", () => ({ default: ({ item }: { item: { title: string } }) => <p>{item.title}</p> }));
+it("F04: waits for auth restoration and separates public cache from owner", async () => {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  client.setQueryData(["myGameList", 1, "public", 1], { data: [], pagination: { count: 0 } });
+  vi.mocked(getUserGameMadeList).mockResolvedValue({ data: [{ id: 42, title: "검수중 게임", register_state: 0 }], pagination: { count: 1 } });
+  const user = { user_id: 1, nickname: "owner" } as TUserData;
+  const view = render(<QueryClientProvider client={client}><MyGame user={user} isMyPage={null} /></QueryClientProvider>);
+  expect(screen.getByRole("status")).toBeTruthy();
+  expect(getUserGameList).not.toHaveBeenCalled();
+  expect(getUserGameMadeList).not.toHaveBeenCalled();
+  view.rerender(<QueryClientProvider client={client}><MyGame user={user} isMyPage={true} /></QueryClientProvider>);
+  await waitFor(() => expect(screen.getByText("검수중 게임")).toBeTruthy());
+  expect(getUserGameMadeList).toHaveBeenCalledWith(1, 1);
+  expect(getUserGameList).not.toHaveBeenCalled();
+});

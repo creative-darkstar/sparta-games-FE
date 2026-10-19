@@ -5,7 +5,7 @@ import MyGameCard from "./MyGameCard";
 import log from "../../assets/Log.svg";
 import { useState } from "react";
 import SpartaPagination from "../../spartaDesignSystem/SpartaPagination";
-import { useParams } from "react-router-dom";
+import { AxiosError } from "axios";
 
 type TMyGameProps = {
   submissionComplete?: boolean;
@@ -15,14 +15,15 @@ type TMyGameProps = {
 
 const MyGame = (props: TMyGameProps) => {
   const [page, setPage] = useState<number>(1);
-  const { id } = useParams();
+  const mode = props.isMyPage === null ? "loading" : props.isMyPage ? "owner" : "public";
   //* Hooks
-  const { data, isPending, isError, refetch } = useQuery<TApiResponse<(TGameData & { register_state: number })[]>>({
-    queryKey: ["myGameList", props.user.user_id, page],
+  const { data, isPending, isError, error, refetch } = useQuery<TApiResponse<(TGameData & { register_state: number })[]>>({
+    queryKey: ["myGameList", props.user.user_id, mode, page],
+    enabled: mode !== "loading",
     refetchOnMount: "always",
     refetchInterval: (query) =>
       props.isMyPage && query.state.data?.data.some((game) => game.register_state === 0) ? 30000 : false,
-    queryFn: () => (props.isMyPage ? getUserGameMadeList(props.user.user_id, page) : getUserGameList(Number(id), page)),
+    queryFn: () => (props.isMyPage ? getUserGameMadeList(props.user.user_id, page) : getUserGameList(props.user.user_id, page)),
   });
 
   const gameData = (data && data?.data) || [];
@@ -39,7 +40,7 @@ const MyGame = (props: TMyGameProps) => {
         <p role="status">목록을 불러오는 중입니다.</p>
       ) : isError ? (
         <p role="alert" className="text-white">
-          {props.submissionComplete
+          {error instanceof AxiosError && error.response?.status === 401 ? "로그인 상태를 확인해주세요." : props.submissionComplete
             ? "검수 요청은 완료되었지만 목록을 불러오지 못했습니다."
             : "목록을 불러오지 못했습니다."}
           <button onClick={() => refetch()}>목록 다시 불러오기</button>
