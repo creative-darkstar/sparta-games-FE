@@ -197,6 +197,7 @@ const GameUploadForm = ({ note, previousGameData, isEditMode }: Props) => {
           {upload.pending && (
             <p>이탈하면 전송이 중단될 수 있습니다. 새로고침·탭 종료 후에는 파일을 다시 선택해야 할 수 있습니다.</p>
           )}
+          {upload.delayed && <p>{upload.stage === "uploading" ? "파일 전송이 지연되고 있습니다." : "접수 응답이 지연되고 있습니다. 중복 제출하지 말고 기다려주세요."}</p>}
           {upload.message && <p>{upload.message}</p>}
         </div>
         {upload.stage === "uncertain" && (

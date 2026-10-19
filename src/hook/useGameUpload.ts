@@ -6,7 +6,14 @@ import { UploadStage } from "../types";
 export function useGameUpload() {
   const [stage, setStage] = useState<UploadStage>("idle");
   const [progress, setProgress] = useState<number | null>(null);
+  const [delayed, setDelayed] = useState(false);
   const [message, setMessage] = useState("");
+  useEffect(() => {
+    setDelayed(false);
+    if (stage !== "uploading" && stage !== "submitting") return;
+    const timer = window.setTimeout(() => setDelayed(true), 30000);
+    return () => window.clearTimeout(timer);
+  }, [stage]);
   const running = useRef(false);
   const controller = useRef<AbortController | null>(null);
   useEffect(
@@ -69,5 +76,5 @@ export function useGameUpload() {
       running.current = false;
     }
   };
-  return { stage, progress, message, submit, invalidateFile, pending: stage === "uploading" || stage === "submitting" };
+  return { stage, progress, delayed, message, submit, invalidateFile, pending: stage === "uploading" || stage === "submitting" };
 }
