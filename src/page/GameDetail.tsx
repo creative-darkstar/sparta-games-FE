@@ -1,3 +1,4 @@
+import ZipValidationStatus from "../components/gameUploadComponents/ZipValidationStatus";
 import RejectionPanel from "../components/gameUploadComponents/RejectionPanel";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
@@ -39,7 +40,7 @@ const GameDetail = () => {
   const [searchParams] = useSearchParams();
   const gameDetailId = Number(searchParams.get("id"));
 
-  const { userData } = userStore();
+  const { userData, authStatus } = userStore();
 
   const [isPending, setIsPending] = useState(false);
 
@@ -57,6 +58,7 @@ const GameDetail = () => {
         ? 30000
         : false,
     queryFn: () => getGameDetail(gameDetailId),
+    enabled: authStatus !== "loading",
     retry: false,
   });
 
@@ -129,6 +131,7 @@ const GameDetail = () => {
         </div>
       ) : (
         <main>
+          {gamePlayData?.data.zip_validation && <ZipValidationStatus gameId={gameDetailId} submission={gamePlayData.data.zip_validation} />}
           <div className="flex justify-between mt-10 items-center font-DungGeunMo text-[24px] text-gray-300">
             <Link to={`/category?category=${gameCategory}`} className="flex gap-3">
               <CaretLeft />

@@ -19,7 +19,7 @@ export async function uploadGameZip(file: File, progress: (value: number | null)
   }
   await storage.put(upload_url, file, {
     signal,
-    headers: { "Content-Type": "application/zip", "x-amz-tagging": "is_used=false" },
+    headers: { "Content-Type": "application/zip", "x-amz-tagging": "is_used=false", "If-None-Match": "*" },
     onUploadProgress: ({ loaded, total }) => progress(total ? Math.round((loaded / total) * 100) : null),
   });
   return file_key;

@@ -44,8 +44,8 @@ export function useGameUpload() {
         setMessage("입력 조건을 확인해주세요. 요청을 완료하지 못했습니다.");
         return false;
       }
-      setStage("completed");
-      return true;
+      setStage("accepted");
+      return result.data.data || { game_id: gameId };
     } catch (error) {
       if (signal.aborted) return false;
       const status = axios.isAxiosError(error) ? error.response?.status : undefined;

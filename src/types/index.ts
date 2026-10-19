@@ -266,6 +266,7 @@ export type TGameDataResponse = {
 };
 
 export type TGameData = {
+  zip_validation?: ZipSubmission | null;
   id: number;
   title: string;
   thumbnail: string;
@@ -394,5 +395,28 @@ export type TGameAdminData = {
 export type TPaginatedResponse<T> = TApiResponse<T> & {
   pagination: { count: number; next: string | null; previous: string | null };
 };
-export type UploadStage = "idle" | "validating" | "uploading" | "submitting" | "completed" | "failed" | "uncertain";
+export type UploadStage = "idle" | "validating" | "uploading" | "submitting" | "accepted" | "failed" | "uncertain";
 export type GameReviewState = 0 | 1 | 2;
+
+export type ZipSubmission = {
+  task_id?: string;
+  submission_id?: string;
+  publish_status?: string;
+  created_at?: number;
+  lookup_status?: string;
+};
+export type ZipOutcome = {
+  kind: "game_zip_validation";
+  schema_version: 1;
+  game_id: number;
+  submission_id: string;
+  outcome: "valid" | "invalid" | "skipped";
+  reason?: string | null;
+  reason_code?: string | null;
+};
+export type TaskStatus = {
+  task_id: string;
+  status: string;
+  lookup_status?: string;
+  result: unknown;
+};

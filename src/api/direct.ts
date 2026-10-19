@@ -119,9 +119,13 @@ export const downloadZip = async (id: number) => {
   }
 };
 
-export const getApprovalTask = async (taskId: string) => {
+export const getTaskStatus = async (taskId: string) => {
   const response = await sparta_games_auth.get(`/directs/api/list/task-status/${encodeURIComponent(taskId)}/`, {
     timeout: 10000,
   });
-  return response.data.data as { status: string; result: { status?: string; game_id?: number } | null };
+  return response.data.data as import("../types").TaskStatus;
+};
+
+export const getApprovalTask = async (taskId: string) => {
+  return await getTaskStatus(taskId) as { status: string; result: { status?: string; game_id?: number } | null };
 };

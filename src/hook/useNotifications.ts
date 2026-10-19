@@ -40,7 +40,7 @@ export const useNotifications = () => {
             pages: old.pages.map((page, index) => (index === 0 ? { ...page, data: [alarm, ...page.data] } : page)),
           };
         });
-        for (const key of ["alarm", "gameDetail", "gameLog", "myGameList", "gameList"])
+        for (const key of ["zipValidation", "alarm", "gameDetail", "gameLog", "myGameList", "gameList"])
           void client.invalidateQueries({ queryKey: [key] });
       } catch {
         /* Ignore malformed socket events; focus refetch reconciles state. */
@@ -63,7 +63,7 @@ export const useNotifications = () => {
           })),
         },
     );
-    for (const key of ["alarm", "gameDetail", "gameLog", "myGameList"])
+    for (const key of ["zipValidation", "alarm", "gameDetail", "gameLog", "myGameList"])
       void client.invalidateQueries({ queryKey: [key] });
   };
   const hasUnread = query.data?.pages.some((page) => page.data.some((alarm) => !alarm.is_read)) ?? false;

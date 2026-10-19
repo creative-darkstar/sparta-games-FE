@@ -1,3 +1,4 @@
+import ZipValidationStatus from "../gameUploadComponents/ZipValidationStatus";
 import { TGameData } from "../../types";
 import StarRating from "../common/StarRating";
 import GameChip from "../common/chipComponents/GameChip";
@@ -81,6 +82,7 @@ const MyGameCard = ({ item }: Props) => {
             </div>
           </div>
         </div>
+        {item?.zip_validation && <ZipValidationStatus gameId={item.id} submission={item.zip_validation} />}
         <div className="flex items-center justify-between w-full">
           <div className="w-[20%]">
             <span
