@@ -204,7 +204,7 @@ const GameUploadForm = ({ note, previousGameData, isEditMode }: Props) => {
           </button>
         )}
         {blocked && !upload.pending && (
-          <p className="text-gray-300">{upload.stage === "uncertain" ? "접수 결과가 불확실합니다. 개발목록을 확인해주세요." : checking ? "ZIP 파일 검사 중입니다." : fileError ? "ZIP 파일 검사에 실패했습니다. 파일을 다시 선택해주세요." : requiresFile && !file ? "새 게임 파일을 선택해주세요." : !agreed ? "유의사항에 모두 동의해주세요." : "제목, 장르, 설명, 썸네일 등 필수 입력을 확인해주세요."}</p>
+          <p className="text-gray-300">{upload.stage === "uncertain" ? "접수 결과가 불확실합니다. 개발목록을 확인해주세요." : checking ? "ZIP 파일 검사 중입니다." : fileError ? "ZIP 파일 검사에 실패했습니다. 파일을 다시 선택해주세요." : requiresFile && !file ? "제출하려면 ZIP 파일이 필요합니다." : !agreed ? "유의사항에 모두 동의해주세요." : "제목, 장르, 설명, 썸네일 등 필수 입력을 확인해주세요."}</p>
         )}
         <button
           disabled={blocked}
