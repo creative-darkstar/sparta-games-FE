@@ -110,3 +110,11 @@ it("U01: missing inputs and agreement block new submission", async () => {
   await act(async () => fireEvent.change(screen.getByLabelText("게임 파일 선택"), { target: { files: [] } }));
   expect(postGameList).not.toHaveBeenCalled();
 });
+
+it("F02: last ZIP enables rejected resubmission without editing title", async () => {
+  mount({ ...existing, register_state: 2 });
+  await act(async () => fireEvent.change(screen.getByLabelText("게임 파일 변경"), {
+    target: { files: [new File(["zip"], "last.zip")] },
+  }));
+  expect((screen.getByRole("button", { name: "재검수 요청" }) as HTMLButtonElement).disabled).toBe(false);
+});
