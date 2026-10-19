@@ -1,0 +1,59 @@
+
+> sparta_game_react@0.0.0 test
+> vitest run --reporter=dot
+
+
+ RUN  v2.1.9 C:/Users/user/Desktop/Sparta_Games_BE/sparta-games-FE
+
+Browserslist: browsers data (caniuse-lite) is 24 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+stderr | tests/form.test.tsx > U01/U10: rejected edit requires a new ZIP; unagreed new form cannot submit
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+⚠️ React Router Future Flag Warning: The persistence behavior of fetchers is changing in v7. You can use the `v7_fetcherPersist` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_fetcherpersist.
+⚠️ React Router Future Flag Warning: Casing of `formMethod` fields is being normalized to uppercase in v7. You can use the `v7_normalizeFormMethod` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_normalizeformmethod.
+⚠️ React Router Future Flag Warning: `RouterProvider` hydration behavior is changing in v7. You can use the `v7_partialHydration` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_partialhydration.
+⚠️ React Router Future Flag Warning: The revalidation behavior after 4xx/5xx `action` responses is changing in v7. You can use the `v7_skipActionErrorRevalidation` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_skipactionerrorrevalidation.
+
+ ✓ tests/form.test.tsx (8 tests) 383ms
+ ✓ tests/upload.test.ts (14 tests) 30ms
+ ✓ tests/notifications.test.tsx (4 tests) 239ms
+ ✓ tests/results.test.tsx (3 tests) 132ms
+ ✓ tests/approval.test.tsx (6 tests) 110ms
+ ✓ tests/team-warning.test.tsx (2 tests) 49ms
+ ✓ tests/accessibility-save.test.tsx (4 tests) 20ms
+ ✓ tests/zip-status.test.tsx (13 tests) 39ms
+stderr | tests/activity.test.tsx > U22: empty favorites and recent games are normal
+Warning: validateDOMNesting(...): <p> cannot appear as a descendant of <p>.
+    at p
+    at div
+    at p
+    at div
+    at GameCardList (C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\components\homeComponents\GameCardList.tsx:10:3)
+    at div
+    at Logs (C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\components\mypageComponents\Logs.tsx:20:85)
+    at Router (C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\node_modules\react-router\dist\umd\react-router.development.js:1207:17)
+    at MemoryRouter (C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\node_modules\react-router\dist\umd\react-router.development.js:1101:7)
+    at QueryClientProvider (file:///C:/Users/user/Desktop/Sparta_Games_BE/sparta-games-FE/node_modules/@tanstack/react-query/build/modern/QueryClientProvider.js:20:3)
+Warning: validateDOMNesting(...): <div> cannot appear as a descendant of <p>.
+    at div
+    at p
+    at div
+    at GameCardList (C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\components\homeComponents\GameCardList.tsx:10:3)
+    at div
+    at Logs (C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\components\mypageComponents\Logs.tsx:20:85)
+    at Router (C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\node_modules\react-router\dist\umd\react-router.development.js:1207:17)
+    at MemoryRouter (C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\node_modules\react-router\dist\umd\react-router.development.js:1101:7)
+    at QueryClientProvider (file:///C:/Users/user/Desktop/Sparta_Games_BE/sparta-games-FE/node_modules/@tanstack/react-query/build/modern/QueryClientProvider.js:20:3)
+
+ ✓ tests/activity.test.tsx (3 tests) 92ms
+ ✓ tests/presigned.test.ts (2 tests) 1ms
+ ✓ tests/validation.test.ts (3 tests) 12ms
+ ✓ tests/list-restoration.test.tsx (1 test) 18ms
+
+ Test Files  12 passed (12)
+      Tests  63 passed (63)
+   Start at  21:30:35
+   Duration  7.33s (transform 909ms, setup 318ms, collect 4.19s, tests 1.12s, environment 826ms, prepare 126ms)
+
