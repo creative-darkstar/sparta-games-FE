@@ -19,7 +19,13 @@ vi.mock("react-quill", () => ({
     <textarea aria-label="게임 설명" value={value} onChange={(event) => onChange(event.target.value)} />
   ),
 }));
-vi.mock("../src/spartaDesignSystem/SpartaChipSelect", () => ({ default: () => null }));
+vi.mock("../src/spartaDesignSystem/SpartaChipSelect", async () => {
+  const { useFormContext } = await import("react-hook-form");
+  return { default: () => {
+    const { register } = useFormContext();
+    return <input aria-label="장르 입력" {...register("category", { required: true })} />;
+  } };
+});
 const existing = {
   id: 42,
   title: "기존 게임",
@@ -117,4 +123,16 @@ it("F02: last ZIP enables rejected resubmission without editing title", async ()
     target: { files: [new File(["zip"], "last.zip")] },
   }));
   expect((screen.getByRole("button", { name: "재검수 요청" }) as HTMLButtonElement).disabled).toBe(false);
+});
+
+it.each(["first", "last"])("F02: new form with ZIP %s activates without title re-entry", async (order) => {
+  mount(null);
+  const chooseZip = async () => act(async () => fireEvent.change(screen.getByLabelText("게임 파일 선택"), { target: { files: [new File(["zip"], "game.zip")] } }));
+  if (order === "first") await chooseZip();
+  await act(async () => fireEvent.change(screen.getByLabelText("제목 · 필수"), { target: { value: "새 게임" } }));
+  await act(async () => fireEvent.change(screen.getByLabelText("장르 입력"), { target: { value: "액션" } }));
+  await act(async () => fireEvent.change(screen.getByLabelText("게임 설명"), { target: { value: "설명" } }));
+  await act(async () => fireEvent.change(screen.getByLabelText("썸네일 파일 선택"), { target: { files: [new File(["image"], "thumb.png")] } }));
+  if (order === "last") await chooseZip();
+  expect((screen.getByRole("button", { name: "검수 요청" }) as HTMLButtonElement).disabled).toBe(false);
 });

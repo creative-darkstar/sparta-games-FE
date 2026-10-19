@@ -10,3 +10,7 @@ ZIP 수동 등록, 검사 후 trigger 순서, 비활성 사유 구분. 검사 A/
 회귀 검사에서 확인된 중복 안내 문구를 정리. ZIP 마지막 선택 및 이전 검사 무시 테스트 통과.
 
 - `src/components/gameUploadComponents/GameUploadForm.tsx` 코드 라인: 207 (해당 커밋 기준)
+
+신규 등록의 ZIP 먼저·마지막 입력 순서를 검증. 추가 제목 입력 없이 제출 버튼 활성화 확인.
+
+- `tests/form.test.tsx` 코드 라인: 22, 127
