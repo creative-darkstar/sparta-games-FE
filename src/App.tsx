@@ -12,22 +12,9 @@ import SpartaButton from "./spartaDesignSystem/SpartaButton";
 const queryClient = new QueryClient();
 
 function App() {
-  const { userData, setUser } = userStore();
-
   useEffect(() => {
-    const accessToken = sessionStorage.getItem("accessToken");
-    if (accessToken) {
-      userStore.getState().setUser(accessToken);
-    }
+    void userStore.getState().setUser(sessionStorage.getItem("accessToken") || undefined);
   }, []);
-
-  // 로그인 정보가 없을 때, sessionStorage에 저장된 accessToken을 이용하여 로그인 처리
-  useEffect(() => {
-    if (userData) return;
-    const accessToken = sessionStorage.getItem("accessToken");
-    if (!accessToken) return;
-    setUser(accessToken);
-  }, [userData]);
 
   function isMobileWeb() {
     const toMatch = [/Android/i, /webOS/i, /iPhone/i, /iPod/i, /BlackBerry/i, /Windows Phone/i];

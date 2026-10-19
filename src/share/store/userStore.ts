@@ -4,6 +4,7 @@ import { getUserData } from "../../api/user";
 import { TUserData, TUserDataResponse } from "../../types";
 
 type Store = {
+  authStatus: "loading" | "ready" | "error";
   userData?: TUserDataResponse;
   setUser: (accessToken?: string) => Promise<TUserDataResponse | undefined>;
   setUserData: (key: keyof TUserData, value: any) => void;
@@ -11,15 +12,17 @@ type Store = {
 };
 
 export const userStore = create<Store>()((set) => ({
+  authStatus: "loading",
   setUser: async (accessToken?: string) => {
     if (!accessToken) {
-      set({ userData: undefined });
+      set({ userData: undefined, authStatus: "ready" });
       return;
     }
+    set({ authStatus: "loading" });
     try {
       const decoded_jwt = jwtDecode<{ user_id: number }>(accessToken);
       const userData = await getUserData(decoded_jwt.user_id);
-      set({ userData: userData });
+      set({ userData: userData, authStatus: "ready" });
 
       if (userData?.data?.is_staff) {
         sessionStorage.setItem("isAdmin", "true");
@@ -27,7 +30,7 @@ export const userStore = create<Store>()((set) => ({
       return userData;
     } catch (error) {
       console.error("Error fetching user data:", error);
-      set({ userData: undefined });
+      set({ userData: undefined, authStatus: "error" });
     }
   },
   setUserData: (key: keyof TUserData, value: any) => {
@@ -48,7 +51,7 @@ export const userStore = create<Store>()((set) => ({
     sessionStorage.removeItem("accessToken");
     sessionStorage.removeItem("refreshToken");
     sessionStorage.removeItem("isAdmin");
-    set({ userData: undefined });
+    set({ userData: undefined, authStatus: "ready" });
     window.location.href = "/";
   },
 }));
