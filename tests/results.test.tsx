@@ -49,7 +49,7 @@ it("U04/U14: review banner survives list failure and consumes router state", asy
   vi.mocked(getUserGameMadeList).mockRejectedValue(new Error());
   const { router } = mount("/my-page/1?tab=develop", { gameResult: "review" });
   expect(await screen.findByText("검수 요청 완료")).toBeTruthy();
-  expect(screen.getByText("서버 파일 검증 결과는 아래 개발목록에서 확인할 수 있습니다. 접수 후에는 이동해도 됩니다.")).toBeTruthy();
+  expect(screen.getByText("검수 완료 시 알림으로 안내합니다.")).toBeTruthy();
   await screen.findByText("검수 요청은 완료되었지만 목록을 불러오지 못했습니다.");
   expect(router.state.location.state).toBeNull();
   expect(screen.getByRole("button", { name: "목록 다시 불러오기" })).toBeTruthy();

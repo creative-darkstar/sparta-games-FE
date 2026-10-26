@@ -3,13 +3,12 @@ import { getUserGameList, getUserGameMadeList } from "../../api/user";
 import { TApiResponse, TGameData, TUserData } from "../../types";
 import MyGameCard from "./MyGameCard";
 import log from "../../assets/Log.svg";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import SpartaPagination from "../../spartaDesignSystem/SpartaPagination";
 import { AxiosError } from "axios";
 
 type TMyGameProps = {
   submissionComplete?: boolean;
-  onListLoaded?: () => void;
   user: TUserData;
   isMyPage: boolean | null;
 };
@@ -26,8 +25,6 @@ const MyGame = (props: TMyGameProps) => {
       props.isMyPage && query.state.data?.data.some((game) => game.register_state === 0) ? 30000 : false,
     queryFn: () => (props.isMyPage ? getUserGameMadeList(props.user.user_id, page) : getUserGameList(props.user.user_id, page)),
   });
-
-  useEffect(() => { if (data) props.onListLoaded?.(); }, [data, props.onListLoaded]);
 
   const gameData = (data && data?.data) || [];
   const totalCount = (data && data.pagination?.count) || 0;

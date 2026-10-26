@@ -48,7 +48,7 @@ export default function GameUploadFields({ isUploading, onChangeFileHandler, pre
       <ImagePreview value={typeof thumbnail === "string" ? thumbnail : thumbnail?.[0]} />
       {typeof thumbnail !== "string" && <p className="break-all">{thumbnail?.[0]?.name}</p>}
       {formState.errors.thumbnail && <p role="alert">{formState.errors.thumbnail.message}</p>}
-      <label htmlFor="gameFile">게임 파일 · ZIP 파일, 최대 500MiB</label>
+      <label htmlFor="gameFile">게임 파일 · ZIP 파일, 최대 500MB</label>
       <button
         type="button"
         className="p-3 bg-primary-500 text-black rounded w-fit"

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 
@@ -23,7 +23,6 @@ const MyPage = () => {
   useEffect(() => {
     if (location.state?.gameResult) navigate(location.pathname + location.search, { replace: true, state: null });
   }, [location, navigate]);
-  const clearReview = useCallback(() => setResult((value) => value === "review" ? null : value), []);
   const [searchParams] = useSearchParams();
 
   const tabParam = searchParams.get("tab");
@@ -133,7 +132,7 @@ const MyPage = () => {
               {result && (
                 <div role="status" className="p-4 mb-4 text-white bg-gray-700">
                   <strong>{result === "review" ? "검수 요청 완료" : "변경사항이 저장되었습니다."}</strong>
-                  {result === "review" && <p>서버 파일 검증 결과는 아래 개발목록에서 확인할 수 있습니다. 접수 후에는 이동해도 됩니다.</p>}
+                  {result === "review" && <p>검수 완료 시 알림으로 안내합니다.</p>}
                   <button onClick={() => setResult(null)}>닫기</button>
                 </div>
               )}
@@ -143,7 +142,7 @@ const MyPage = () => {
               ) : navigation === "teambuilding" && user ? (
                 <ProfileDetail user={user} isMyPage={isMyPage} />
               ) : navigation === "develop" ? (
-                <MyGame key={`${id}:${isMyPage}`} onListLoaded={clearReview} submissionComplete={result === "review"} user={user} isMyPage={isMyPage} />
+                <MyGame key={`${id}:${isMyPage}`} submissionComplete={result === "review"} user={user} isMyPage={isMyPage} />
               ) : (
                 <Setting />
               )}
