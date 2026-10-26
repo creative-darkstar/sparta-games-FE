@@ -27,6 +27,3 @@ SUCCESS만으로 성공 판정하지 않고 제출·게임·스키마와 outcome
 
 ## F03 추가 검증
 수정 링크에도 현재 제출 식별자 검증 적용. 조회 식별자가 없는 항목에는 장기 대기 안내를 표시하지 않음.
-
-## 최종 검증
-FE 63개 / BE 16개 테스트 통과. FE build 통과, DB schema 변경 없음. FE 전체 typecheck는 미변경 파일의 기존 오류로 실패. 실 S3·worker 인수 시험은 미실행. 최종 코드 라인 설명과 배포 조건은 docs/presigned-fix/README.md 참조.
