@@ -31,7 +31,7 @@ const GameUploadForm = ({ note, previousGameData, isEditMode }: Props) => {
       stillCut: [],
     },
   });
-  const { register, setValue, handleSubmit, formState, watch, trigger } = methods;
+  const { register, setValue, handleSubmit, formState, watch } = methods;
   const [checking, setChecking] = useState(false);
   const [fileError, setFileError] = useState("");
   const [confirm, setConfirm] = useState(false);
@@ -60,13 +60,11 @@ const GameUploadForm = ({ note, previousGameData, isEditMode }: Props) => {
       ? "재검수 요청"
       : "변경사항 저장";
   useEffect(() => {
-    register("gameFile", { validate: (value) => !requiresFile || !!value || "새 게임 파일을 선택해주세요." });
     register("thumbnail", { required: "썸네일을 선택해주세요." });
     register("content", {
       validate: (value) => !!value?.replace(/<[^>]*>/g, "").trim() || "게임 설명을 입력해주세요.",
     });
-    void trigger();
-  }, [register, requiresFile, trigger]);
+  }, [register]);
   useEffect(() => {
     if (!upload.pending) return;
     const leave = (event: BeforeUnloadEvent) => {
@@ -83,15 +81,12 @@ const GameUploadForm = ({ note, previousGameData, isEditMode }: Props) => {
     if (id === "gameFile") {
       const version = ++selection.current;
       upload.invalidateFile();
-      setValue("gameFile", null, { shouldValidate: true });
+      setValue("gameFile", null);
       setChecking(true);
       setFileError("");
       try {
         await validateGameZip(chosen);
-        if (version === selection.current) {
-          setValue("gameFile", chosen, { shouldDirty: true });
-          await trigger();
-        }
+        if (version === selection.current) setValue("gameFile", chosen, { shouldValidate: true, shouldDirty: true });
       } catch (error) {
         if (version === selection.current)
           setFileError(error instanceof Error ? error.message : "파일을 확인하지 못했습니다.");
@@ -204,7 +199,7 @@ const GameUploadForm = ({ note, previousGameData, isEditMode }: Props) => {
           </button>
         )}
         {blocked && !upload.pending && (
-          <p className="text-gray-300">{upload.stage === "uncertain" ? "접수 결과가 불확실합니다. 개발목록을 확인해주세요." : checking ? "ZIP 파일 검사 중입니다." : fileError ? "ZIP 파일 검사에 실패했습니다. 파일을 다시 선택해주세요." : requiresFile && !file ? "새 게임 파일을 선택해주세요." : !agreed ? "유의사항에 모두 동의해주세요." : "제목, 장르, 설명, 썸네일 등 필수 입력을 확인해주세요."}</p>
+          <p className="text-gray-300">유의사항 동의, 필수 입력과 파일 검사 결과를 확인해주세요.</p>
         )}
         <button
           disabled={blocked}
