@@ -32,7 +32,7 @@ const MyPage = () => {
     unClicked: "bg-gray-800 text-gray-400",
   };
 
-  const { userData, authStatus } = userStore();
+  const { userData } = userStore();
   const isUserDataLoaded = !!userData?.data?.user_id;
   const isMyPage = isUserDataLoaded ? id === userData.data.user_id.toString() : null;
 
@@ -52,7 +52,7 @@ const MyPage = () => {
   const { data, isError } = useQuery<TUserDataResponse>({
     queryKey: ["userProfile", id],
     queryFn: () => getUserData(Number(id)),
-    enabled: !!id && authStatus === "ready" && isMyPage === false,
+    enabled: !!id && !isMyPage,
     retry: 1,
   });
 
@@ -79,9 +79,6 @@ const MyPage = () => {
     setNavigation(tab);
     navigate(`?tab=${tab}`, { replace: true });
   };
-
-  if (authStatus === "loading") return <p role="status">로그인 정보를 불러오는 중입니다.</p>;
-  if (authStatus === "error" || !userData) return <p role="alert">로그인 상태를 확인해주세요. <button onClick={() => window.location.reload()}>다시 확인</button></p>;
 
   return (
     user && (
@@ -142,7 +139,7 @@ const MyPage = () => {
               ) : navigation === "teambuilding" && user ? (
                 <ProfileDetail user={user} isMyPage={isMyPage} />
               ) : navigation === "develop" ? (
-                <MyGame key={`${id}:${isMyPage}`} submissionComplete={result === "review"} user={user} isMyPage={isMyPage} />
+                <MyGame submissionComplete={result === "review"} user={user} isMyPage={isMyPage} />
               ) : (
                 <Setting />
               )}
