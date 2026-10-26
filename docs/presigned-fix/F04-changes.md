@@ -8,8 +8,3 @@
 - `src/App.tsx` 코드 라인: 14, 16, 18 (이 커밋 기준)
 - `src/page/MyPage.tsx` 코드 라인: 35, 55, 83, 145 (이 커밋 기준)
 - `src/components/myPageComponents/MyGame.tsx` 코드 라인:  (이 커밋 기준)
-
-목록 조회 활성화 조건과 소유자별 캐시를 실제 추적 경로에 반영. 인증 복원 지연 및 공개 빈 캐시 분리 테스트 통과.
-
-- `src/components/mypageComponents/MyGame.tsx` 코드 라인: 8, 18, 20, 26, 43 (해당 커밋 기준)
-- `tests/list-restoration.test.tsx` 코드 라인: 1 (해당 커밋 기준)
