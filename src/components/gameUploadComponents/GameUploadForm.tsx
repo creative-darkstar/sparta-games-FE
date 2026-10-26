@@ -125,13 +125,12 @@ const GameUploadForm = ({ note, previousGameData, isEditMode }: Props) => {
       if (files?.[0]) body.append("new_screenshots", files[0]);
     });
     screenShotIds.forEach((id) => body.append("old_screenshots", String(id)));
-    const receipt = await upload.submit(body, data.gameFile, previousGameData?.id);
-    if (receipt) {
+    if (await upload.submit(body, data.gameFile, previousGameData?.id)) {
       for (const key of ["myGameList", "gameDetail", "gameList"])
         void queryClient.invalidateQueries({ queryKey: [key] });
       finished.current = true;
       navigate(`/my-page/${userData?.data.user_id}?tab=develop`, {
-        state: !isEditMode || !!data.gameFile ? { gameResult: "review", submission: receipt } : { gameResult: "saved" },
+        state: { gameResult: !isEditMode || !!data.gameFile ? "review" : "saved" },
       });
     } else setConfirm(false);
   };

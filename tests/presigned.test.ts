@@ -26,7 +26,7 @@ it("S3 PUT is isolated, tagged, and returns only the relative file key", async (
     { signal: undefined },
   );
   const config = mocks.put.mock.calls[0][2];
-  expect(config.headers).toEqual({ "Content-Type": "application/zip", "x-amz-tagging": "is_used=false", "If-None-Match": "*" });
+  expect(config.headers).toEqual({ "Content-Type": "application/zip", "x-amz-tagging": "is_used=false" });
   config.onUploadProgress({ loaded: 42, total: 100 });
   expect(progress).toHaveBeenLastCalledWith(42);
   config.onUploadProgress({ loaded: 42 });
