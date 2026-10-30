@@ -19,7 +19,8 @@ export async function uploadGameZip(file: File, progress: (value: number | null)
   }
   await storage.put(upload_url, file, {
     signal,
-    headers: { "Content-Type": "application/zip", "x-amz-tagging": "is_used=false" },
+    // F06: 서버가 If-None-Match: * 를 서명에 포함한다. 객체가 이미 있으면 S3가 412로 거부한다(덮어쓰기 차단).
+    headers: { "Content-Type": "application/zip", "x-amz-tagging": "is_used=false", "If-None-Match": "*" },
     onUploadProgress: ({ loaded, total }) => progress(total ? Math.round((loaded / total) * 100) : null),
   });
   return file_key;

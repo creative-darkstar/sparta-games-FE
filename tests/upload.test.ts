@@ -139,3 +139,30 @@ describe("upload submission contract", () => {
     expect(result.current.stage).toBe("failed");
   });
 });
+
+describe("F06 upload key reuse/overwrite", () => {
+  it("S3 412: 실패 안내 후 재시도는 새 presign부터 다시 업로드하고 등록 POST는 호출하지 않는다", async () => {
+    vi.mocked(uploadGameZip).mockRejectedValueOnce(failure(412));
+    const { result } = renderHook(() => useGameUpload());
+    await act(async () => {
+      expect(await result.current.submit(new FormData(), file)).toBeNull();
+    });
+    expect(result.current.stage).toBe("failed");
+    expect(result.current.message).toBe("업로드 파일이 이미 존재합니다. 파일을 다시 선택해주세요.");
+    expect(postGameList).not.toHaveBeenCalled();
+    await act(async () => {
+      await result.current.submit(new FormData(), file);
+    });
+    expect(uploadGameZip).toHaveBeenCalledTimes(2);
+  });
+
+  it("등록 409: 개발목록 확인을 요구하고 같은 키를 재사용하지 않는다", async () => {
+    vi.mocked(postGameList).mockRejectedValueOnce(failure(409));
+    const { result } = renderHook(() => useGameUpload());
+    await act(async () => {
+      expect(await result.current.submit(new FormData(), file)).toBeNull();
+    });
+    expect(result.current.stage).toBe("uncertain");
+    expect(result.current.message).toBe("이미 접수된 파일일 수 있습니다. 개발목록을 확인해주세요.");
+  });
+});

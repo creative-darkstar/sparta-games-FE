@@ -52,7 +52,17 @@ export function useGameUpload() {
     } catch (error) {
       if (signal.aborted) return null;
       const status = axios.isAxiosError(error) ? error.response?.status : undefined;
-      if (phase === "submitting" && (!status || status >= 500 || status === 408)) {
+      if (phase === "uploading" && status === 412) {
+        // F06: 같은 키에 객체가 이미 있음. 캐시된 키를 버리고 다음 시도는 새 presign부터 시작한다.
+        cached.current = null;
+        setStage("failed");
+        setMessage("업로드 파일이 이미 존재합니다. 파일을 다시 선택해주세요.");
+      } else if (phase === "submitting" && status === 409) {
+        // F06: 이미 사용된 업로드 키. 앞선 요청이 접수되었을 수 있으므로 재등록 전에 개발목록을 확인하게 한다.
+        cached.current = null;
+        setStage("uncertain");
+        setMessage("이미 접수된 파일일 수 있습니다. 개발목록을 확인해주세요.");
+      } else if (phase === "submitting" && (!status || status >= 500 || status === 408)) {
         setStage("uncertain");
         setMessage("요청 결과를 확인하지 못했습니다. 개발목록에서 등록 여부를 먼저 확인해주세요.");
       } else {
