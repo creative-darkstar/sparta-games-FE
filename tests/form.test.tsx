@@ -80,7 +80,7 @@ it("U09/U12: metadata edit opens summary without phrase and retains screenshots"
   const form = vi.mocked(putGameList).mock.calls[0][0];
   expect(form.has("gamefile")).toBe(false);
   expect(form.getAll("old_screenshots")).toEqual(["7"]);
-  expect(router.state.location.state).toEqual({ gameResult: "saved" });
+  expect(router.state.location.state).toEqual({ gameResult: "saved", gameId: 42, taskId: null });
 });
 it("U13: SPA navigation is guarded while uploading", async () => {
   let finish!: (key: string) => void;

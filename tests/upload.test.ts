@@ -6,7 +6,7 @@ import { uploadGameZip } from "../src/api/upload";
 vi.mock("../src/api/game", () => ({ postGameList: vi.fn(), putGameList: vi.fn() }));
 vi.mock("../src/api/upload", () => ({ uploadGameZip: vi.fn() }));
 const file = new File(["zip"], "game.zip");
-const success = { data: { status: "success", data: null } };
+const success = { data: { status: "success", data: { game_id: 15, task_id: "task-15" } } };
 const failure = (status?: number) => ({ isAxiosError: true, response: status ? { status } : undefined });
 beforeEach(() => {
   vi.mocked(uploadGameZip).mockReset().mockResolvedValue("zips/test.zip");
@@ -22,11 +22,11 @@ describe("upload submission contract", () => {
     const { result } = renderHook(useGameUpload);
     const body = new FormData();
     await act(async () => {
-      expect(await result.current.submit(body, file)).toBe(true);
+      expect(await result.current.submit(body, file)).toEqual({ game_id: 15, task_id: "task-15" });
     });
     expect(body.get("gamefile")).toBe("zips/test.zip");
     expect(postGameList).toHaveBeenCalledOnce();
-    expect(result.current.stage).toBe("completed");
+    expect(result.current.stage).toBe("accepted");
   });
   it("U05/U13: 100% transfer is still pending and duplicate calls are blocked", async () => {
     let finish!: (v: typeof success) => void;
@@ -49,7 +49,7 @@ describe("upload submission contract", () => {
     expect(result.current.pending).toBe(true);
     expect(result.current.progress).toBe(100);
     await act(async () => {
-      expect(await result.current.submit(new FormData(), file)).toBe(false);
+      expect(await result.current.submit(new FormData(), file)).toBeNull();
       finish(success);
       await pending;
     });
@@ -73,7 +73,7 @@ describe("upload submission contract", () => {
     vi.mocked(postGameList).mockRejectedValue(failure(status));
     const { result } = renderHook(useGameUpload);
     await act(async () => {
-      expect(await result.current.submit(new FormData(), file)).toBe(false);
+      expect(await result.current.submit(new FormData(), file)).toBeNull();
     });
     expect(result.current.stage).toBe("failed");
     expect(result.current.pending).toBe(false);
@@ -134,7 +134,7 @@ describe("upload submission contract", () => {
     vi.mocked(postGameList).mockResolvedValue({ data: { status: "fail" } } as never);
     const { result } = renderHook(useGameUpload);
     await act(async () => {
-      expect(await result.current.submit(new FormData(), file)).toBe(false);
+      expect(await result.current.submit(new FormData(), file)).toBeNull();
     });
     expect(result.current.stage).toBe("failed");
   });

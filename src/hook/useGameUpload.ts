@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { uploadGameZip } from "../api/upload";
 import { postGameList, putGameList } from "../api/game";
-import { UploadStage } from "../types";
+import { TGameSubmitResult, UploadStage } from "../types";
 export function useGameUpload() {
   const [stage, setStage] = useState<UploadStage>("idle");
   const [progress, setProgress] = useState<number | null>(null);
@@ -21,8 +21,9 @@ export function useGameUpload() {
     setProgress(null);
     setMessage("");
   };
-  const submit = async (form: FormData, file: File | null, gameId?: number) => {
-    if (running.current || stage === "uncertain") return false;
+  /** 성공 시 접수 결과(game_id, task_id), 실패·취소 시 null */
+  const submit = async (form: FormData, file: File | null, gameId?: number): Promise<TGameSubmitResult | null> => {
+    if (running.current || stage === "uncertain") return null;
     running.current = true;
     setMessage("");
     controller.current = new AbortController();
@@ -38,16 +39,18 @@ export function useGameUpload() {
       phase = "submitting";
       setStage("submitting");
       const result = gameId ? await putGameList(form, gameId, signal) : await postGameList(form, signal);
-      if (signal.aborted) return false;
+      if (signal.aborted) return null;
       if (!["success", "warning"].includes(result.data.status)) {
         setStage("failed");
         setMessage("입력 조건을 확인해주세요. 요청을 완료하지 못했습니다.");
-        return false;
+        return null;
       }
-      setStage("completed");
-      return true;
+      // 접수 완료. 서버 ZIP 검증은 이후 task_id로 조회한다.
+      setStage("accepted");
+      const data = result.data.data as Partial<TGameSubmitResult> | null;
+      return { game_id: data?.game_id ?? gameId ?? 0, task_id: data?.task_id ?? null };
     } catch (error) {
-      if (signal.aborted) return false;
+      if (signal.aborted) return null;
       const status = axios.isAxiosError(error) ? error.response?.status : undefined;
       if (phase === "submitting" && (!status || status >= 500 || status === 408)) {
         setStage("uncertain");
@@ -64,7 +67,7 @@ export function useGameUpload() {
                 : "입력값과 파일 조건을 확인해주세요. 요청을 완료하지 못했습니다.",
         );
       }
-      return false;
+      return null;
     } finally {
       running.current = false;
     }

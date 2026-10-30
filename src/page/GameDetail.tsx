@@ -1,4 +1,5 @@
 import RejectionPanel from "../components/gameUploadComponents/RejectionPanel";
+import ZipValidationStatus from "../components/gameUploadComponents/ZipValidationStatus";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -160,6 +161,10 @@ const GameDetail = () => {
           </div>
           {gamePlayData?.data.register_state === 2 && userData?.data.user_id === gamePlayData.data.maker_data.id && (
             <RejectionPanel gameId={gameDetailId} />
+          )}
+          {/* F01: 제작자·관리자에게 검수중 게임의 서버 ZIP 검증 단계를 표시 (zip_task_id는 서버가 권한별로 내려줌) */}
+          {gamePlayData?.data.register_state === 0 && gamePlayData.data.zip_task_id && (
+            <ZipValidationStatus taskId={gamePlayData.data.zip_task_id} gameId={gamePlayData.data.id} />
           )}
           <GamePlaySection gamePlayData={gamePlayData?.data} />
           {gamePlayData?.data.register_state === 1 ? (

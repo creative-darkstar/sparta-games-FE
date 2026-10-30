@@ -1,14 +1,14 @@
-import { TApiResponse } from "../types";
+import { TApiResponse, TGameSubmitResult } from "../types";
 import { sparta_games, sparta_games_auth } from "./axios";
 
 // Propagate HTTP failures to mutation callers.
 export const postGameList = (formData: FormData, signal?: AbortSignal) =>
-  sparta_games_auth.post<TApiResponse<null>>("/games/api/list/", formData, {
+  sparta_games_auth.post<TApiResponse<TGameSubmitResult>>("/games/api/list/", formData, {
     signal,
     headers: { "Content-Type": "multipart/form-data" },
   });
 export const putGameList = (formData: FormData, gamePk: number | undefined, signal?: AbortSignal) =>
-  sparta_games_auth.put<TApiResponse<null>>(`/games/api/list/${gamePk}/`, formData, {
+  sparta_games_auth.put<TApiResponse<TGameSubmitResult>>(`/games/api/list/${gamePk}/`, formData, {
     signal,
     headers: { "Content-Type": "multipart/form-data" },
   });

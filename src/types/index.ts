@@ -302,6 +302,8 @@ export type TGamePlayData = TGameData & {
   gamefile: string;
   gamepath: string;
   register_state: number;
+  /** 제작자·관리자 조회 시에만 내려오는 현재 파일의 ZIP 검증 task_id */
+  zip_task_id?: string | null;
   is_visible: boolean;
   review_cnt: number;
   base_control: string;
@@ -394,5 +396,45 @@ export type TGameAdminData = {
 export type TPaginatedResponse<T> = TApiResponse<T> & {
   pagination: { count: number; next: string | null; previous: string | null };
 };
-export type UploadStage = "idle" | "validating" | "uploading" | "submitting" | "completed" | "failed" | "uncertain";
+// accepted: 등록 API가 접수를 응답한 시점. 서버 ZIP 검증 완료를 뜻하지 않는다.
+export type UploadStage = "idle" | "validating" | "uploading" | "submitting" | "accepted" | "failed" | "uncertain";
 export type GameReviewState = 0 | 1 | 2;
+
+/** 등록 POST·ZIP 교체 PUT 응답 data. 파일 유지 수정은 task_id가 null이다. */
+export type TGameSubmitResult = { game_id: number; task_id: string | null };
+
+/** validate_game_zip_task 반환값 (BE games/tasks.py _zip_result) */
+export type TZipValidationResult = {
+  kind: "game_zip_validation";
+  schema_version: number;
+  game_id: number;
+  file_key: string | null;
+  outcome: "valid" | "invalid" | "skipped";
+  reason_code: string | null;
+  reason: string | null;
+};
+
+/** GET /directs/api/list/task-status/{task_id}/?game_id= 응답 data */
+export type TZipTaskStatusResponse = {
+  task_id: string;
+  status: string;
+  result: TZipValidationResult | null;
+  lookup_status?: "ok" | "expired";
+  error_code?: string;
+  message?: string;
+};
+
+/** 화면에 보여줄 ZIP 검증 단계 */
+export type ZipValidationView =
+  | "waiting"
+  | "running"
+  | "retrying"
+  | "valid"
+  | "invalid"
+  | "skipped"
+  | "failed"
+  | "revoked"
+  | "stale"
+  | "expired"
+  | "unknown"
+  | "error";

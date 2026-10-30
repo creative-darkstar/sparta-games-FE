@@ -141,12 +141,18 @@ const GameUploadForm = ({ note, previousGameData, isEditMode }: Props) => {
       if (files?.[0]) body.append("new_screenshots", files[0]);
     });
     screenShotIds.forEach((id) => body.append("old_screenshots", String(id)));
-    if (await upload.submit(body, data.gameFile, previousGameData?.id)) {
+    const accepted = await upload.submit(body, data.gameFile, previousGameData?.id);
+    if (accepted) {
       for (const key of ["myGameList", "gameDetail", "gameList"])
         void queryClient.invalidateQueries({ queryKey: [key] });
       finished.current = true;
+      // 접수 후 개발목록으로 이동. 검증 결과는 목록에서 task_id로 이어서 조회한다.
       navigate(`/my-page/${userData?.data.user_id}?tab=develop`, {
-        state: { gameResult: !isEditMode || !!data.gameFile ? "review" : "saved" },
+        state: {
+          gameResult: !isEditMode || !!data.gameFile ? "review" : "saved",
+          gameId: accepted.game_id,
+          taskId: accepted.task_id,
+        },
       });
     } else setConfirm(false);
   };

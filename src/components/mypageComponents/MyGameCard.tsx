@@ -4,8 +4,9 @@ import GameChip from "../common/chipComponents/GameChip";
 import SpartaButton from "../../spartaDesignSystem/SpartaButton";
 import { useNavigate } from "react-router-dom";
 import removeHTMLTags from "../../util/removeHTMLTags";
+import ZipValidationStatus from "../gameUploadComponents/ZipValidationStatus";
 
-type Props = { item?: TGameData & { register_state: number } };
+type Props = { item?: TGameData & { register_state: number; zip_task_id?: string | null } };
 
 const MyGameCard = ({ item }: Props) => {
   const navigate = useNavigate();
@@ -81,6 +82,8 @@ const MyGameCard = ({ item }: Props) => {
             </div>
           </div>
         </div>
+        {/* F01: 검수중(0)인 게임은 서버 ZIP 검증 단계를 함께 표시한다 */}
+        {item?.register_state === 0 && <ZipValidationStatus taskId={item.zip_task_id} gameId={item.id} />}
         <div className="flex items-center justify-between w-full">
           <div className="w-[20%]">
             <span
