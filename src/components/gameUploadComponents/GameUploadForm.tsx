@@ -41,6 +41,14 @@ const GameUploadForm = ({ note, previousGameData, isEditMode }: Props) => {
   const selection = useRef(0);
   const [screenShotIds, setScreenShotIds] = useState(previousGameData?.screenshot.map((s) => s.id) || []);
   const upload = useGameUpload();
+  // F05: 전송·접수 대기가 30초를 넘으면 지연 안내. 완료 시간을 약속하지 않는다.
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    setSlow(false);
+    if (upload.stage !== "uploading" && upload.stage !== "submitting") return;
+    const timer = window.setTimeout(() => setSlow(true), 30_000);
+    return () => window.clearTimeout(timer);
+  }, [upload.stage]);
   const navigate = useNavigate();
   const finished = useRef(false);
   const blocker = useBlocker(() => upload.pending && !finished.current);
@@ -214,7 +222,11 @@ const GameUploadForm = ({ note, previousGameData, isEditMode }: Props) => {
               <progress max={100} value={upload.progress ?? undefined} aria-label="게임 파일 업로드" />
             </>
           )}
-          {upload.stage === "submitting" && "검수 요청을 처리 중입니다."}
+          {upload.stage === "uploading" && upload.progress === 100 && (
+            <p>파일 전송이 끝났습니다. 서버 응답을 기다리고 있습니다. 아직 등록이 끝나지 않았습니다.</p>
+          )}
+          {upload.stage === "submitting" && <p>검수 요청을 처리 중입니다. 아직 등록이 끝나지 않았습니다.</p>}
+          {slow && <p>평소보다 오래 걸리고 있습니다. 창을 닫지 말고 기다려주세요. 완료 시간은 보장할 수 없습니다.</p>}
           {upload.pending && (
             <p>이탈하면 전송이 중단될 수 있습니다. 새로고침·탭 종료 후에는 파일을 다시 선택해야 할 수 있습니다.</p>
           )}
@@ -276,7 +288,7 @@ const GameUploadForm = ({ note, previousGameData, isEditMode }: Props) => {
           )}
           <p>
             {!isEditMode || file
-              ? "검수 통과 후 공개됩니다. 검수 완료 시 알림으로 안내합니다."
+              ? "접수 후 서버에서 게임 파일을 검증하고, 관리자 검수 통과 후 공개됩니다. 접수 후에는 다른 화면으로 이동해도 됩니다."
               : "기존 게임 파일을 유지하고 변경사항을 저장합니다."}
           </p>
           <p role="status" aria-live="polite">

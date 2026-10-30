@@ -11,6 +11,7 @@ import MyGame from "../components/mypageComponents/MyGame";
 import ProfileDetail from "../components/communityComponents/TeamBuilding/Profile/ProfileDetail";
 
 import { userStore } from "../share/store/userStore";
+import ZipValidationStatus from "../components/gameUploadComponents/ZipValidationStatus";
 import { TUserDataResponse } from "../types";
 
 const MyPage = () => {
@@ -20,6 +21,11 @@ const MyPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [result, setResult] = useState<"review" | "saved" | null>(location.state?.gameResult || null);
+  // F05: 접수 배너는 해당 제출의 최신 ZIP 검증 결과로 갱신한다(같은 task_id 조회를 카드와 공유).
+  const [submitted] = useState<{ gameId?: number; taskId?: string | null }>({
+    gameId: location.state?.gameId,
+    taskId: location.state?.taskId,
+  });
   useEffect(() => {
     if (location.state?.gameResult) navigate(location.pathname + location.search, { replace: true, state: null });
   }, [location, navigate]);
@@ -141,7 +147,10 @@ const MyPage = () => {
               {result && (
                 <div role="status" className="p-4 mb-4 text-white bg-gray-700">
                   <strong>{result === "review" ? "검수 요청 완료" : "변경사항이 저장되었습니다."}</strong>
-                  {result === "review" && <p>검수 완료 시 알림으로 안내합니다.</p>}
+                  {result === "review" && submitted.taskId && (
+                    <ZipValidationStatus taskId={submitted.taskId} gameId={submitted.gameId} />
+                  )}
+                  {result === "review" && <p>관리자 검수 결과는 알림으로 안내합니다. 다른 화면으로 이동해도 서버 검증은 계속됩니다.</p>}
                   <button onClick={() => setResult(null)}>닫기</button>
                 </div>
               )}

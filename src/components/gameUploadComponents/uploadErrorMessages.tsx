@@ -13,7 +13,7 @@ export const uploadErrorMessages = (onClick: () => void): { [key: string]: Parti
 
   fileTypeWarning: {
     title: "확인해주세요!",
-    content: "ZIP 파일, 최대 500MB까지 선택할 수 있습니다.",
+    content: "ZIP 파일, 최대 500MiB(524,288,000바이트)까지 선택할 수 있습니다.",
     btn1: {
       text: "확인",
       onClick: onClick,

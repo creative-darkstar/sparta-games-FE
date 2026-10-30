@@ -6,7 +6,7 @@ it("U02: rejects extension and size before parsing", async () => {
   await expect(validateGameZip(new File([], "a.7z"))).rejects.toThrow("ZIP");
   const file = new File([], "a.zip");
   Object.defineProperty(file, "size", { value: 500 * 1024 * 1024 + 1 });
-  await expect(validateGameZip(file)).rejects.toThrow("500MB");
+  await expect(validateGameZip(file)).rejects.toThrow("500MiB");
   await expect(validateGameZip(new File(["corrupt"], "a.zip"))).rejects.toThrow("손상");
 });
 it("U02: accepts backend WebGL structure without optional TemplateData", async () => {

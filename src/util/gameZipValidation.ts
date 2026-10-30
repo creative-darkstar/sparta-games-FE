@@ -2,7 +2,7 @@ import JSZip from "jszip";
 import { checkFileSize, checkFileType } from "./fileValidation";
 export async function validateGameZip(file: File) {
   if (!checkFileType(file)) throw new Error("ZIP 파일을 선택해주세요.");
-  if (!checkFileSize(file, 500 * 1024 * 1024)) throw new Error("ZIP 파일은 최대 500MB입니다.");
+  if (!checkFileSize(file, 500 * 1024 * 1024)) throw new Error("ZIP 파일은 최대 500MiB(524,288,000바이트)입니다.");
   let zip: JSZip;
   try {
     zip = await JSZip.loadAsync(file);
