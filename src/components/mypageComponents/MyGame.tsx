@@ -3,7 +3,7 @@ import { getUserGameList, getUserGameMadeList } from "../../api/user";
 import { TApiResponse, TGameData, TUserData } from "../../types";
 import MyGameCard from "./MyGameCard";
 import log from "../../assets/Log.svg";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import SpartaPagination from "../../spartaDesignSystem/SpartaPagination";
 import { useParams } from "react-router-dom";
 
@@ -16,13 +16,20 @@ type TMyGameProps = {
 const MyGame = (props: TMyGameProps) => {
   const [page, setPage] = useState<number>(1);
   const { id } = useParams();
+  // F04: 본인(owner)/공개(public) 조회를 key에 넣어 캐시가 섞이지 않게 한다. 인증 복원 중(null)에는 조회하지 않는다.
+  const mode = props.isMyPage ? "owner" : "public";
+  const targetId = props.isMyPage ? props.user.user_id : Number(id);
+  useEffect(() => setPage(1), [targetId, mode]);
   //* Hooks
-  const { data, isPending, isError, refetch } = useQuery<TApiResponse<(TGameData & { register_state: number })[]>>({
-    queryKey: ["myGameList", props.user.user_id, page],
+  const { data, isPending, isError, refetch } = useQuery<
+    TApiResponse<(TGameData & { register_state: number; zip_task_id?: string | null })[]>
+  >({
+    queryKey: ["myGameList", targetId, mode, page],
+    enabled: props.isMyPage !== null,
     refetchOnMount: "always",
     refetchInterval: (query) =>
       props.isMyPage && query.state.data?.data.some((game) => game.register_state === 0) ? 30000 : false,
-    queryFn: () => (props.isMyPage ? getUserGameMadeList(props.user.user_id, page) : getUserGameList(Number(id), page)),
+    queryFn: () => (props.isMyPage ? getUserGameMadeList(targetId, page) : getUserGameList(targetId, page)),
   });
 
   const gameData = (data && data?.data) || [];

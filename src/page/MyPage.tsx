@@ -32,9 +32,14 @@ const MyPage = () => {
     unClicked: "bg-gray-800 text-gray-400",
   };
 
-  const { userData } = userStore();
+  const { userData, authStatus } = userStore();
   const isUserDataLoaded = !!userData?.data?.user_id;
-  const isMyPage = isUserDataLoaded ? id === userData.data.user_id.toString() : null;
+  // F04: 로그인 복원 중에는 본인 여부를 확정하지 않는다(null). 비로그인이면 공개 조회(false).
+  const isMyPage = isUserDataLoaded
+    ? id === userData.data.user_id.toString()
+    : authStatus === "loading"
+      ? null
+      : false;
 
   useEffect(() => {
     if (!isUserDataLoaded) return;
@@ -52,7 +57,7 @@ const MyPage = () => {
   const { data, isError } = useQuery<TUserDataResponse>({
     queryKey: ["userProfile", id],
     queryFn: () => getUserData(Number(id)),
-    enabled: !!id && !isMyPage,
+    enabled: !!id && isMyPage === false,
     retry: 1,
   });
 
@@ -79,6 +84,13 @@ const MyPage = () => {
     setNavigation(tab);
     navigate(`?tab=${tab}`, { replace: true });
   };
+
+  if (isMyPage === null)
+    return (
+      <p role="status" className="w-full py-20 text-center text-white">
+        로그인 정보를 확인하는 중입니다.
+      </p>
+    );
 
   return (
     user && (
