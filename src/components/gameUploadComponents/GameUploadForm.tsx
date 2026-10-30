@@ -31,7 +31,10 @@ const GameUploadForm = ({ note, previousGameData, isEditMode }: Props) => {
       stillCut: [],
     },
   });
-  const { register, setValue, handleSubmit, formState, watch } = methods;
+  const { register, setValue, handleSubmit, formState, watch, trigger } = methods;
+  // F02: isValid는 렌더 중 읽어야 react-hook-form이 구독한다. 아래 blocked 식의 단락 평가로
+  // 읽히지 않으면 갱신되지 않으므로(ZIP을 마지막에 고르면 버튼 비활성) 항상 먼저 읽는다.
+  const { isValid } = formState;
   const [checking, setChecking] = useState(false);
   const [fileError, setFileError] = useState("");
   const [confirm, setConfirm] = useState(false);
@@ -46,14 +49,27 @@ const GameUploadForm = ({ note, previousGameData, isEditMode }: Props) => {
   const file = watch("gameFile");
   const requiresFile = !isEditMode || previousGameData?.register_state === 2;
   const agreed = isEditMode || (note[1] && note[2] && note[3]);
+  const [title, category, content, thumbnail] = watch(["title", "category", "content", "thumbnail"]);
   const blocked =
     !agreed ||
     checking ||
     upload.pending ||
     !!fileError ||
     (requiresFile && !file) ||
-    !formState.isValid ||
+    !isValid ||
     upload.stage === "uncertain";
+  // 비활성 사유는 실제 조건별로 표시한다.
+  const blockReasons = [
+    !title?.trim() && "제목을 입력해주세요.",
+    !category && "장르를 선택해주세요.",
+    !content?.replace(/<[^>]*>/g, "").trim() && "게임 설명을 입력해주세요.",
+    !thumbnail && "썸네일을 선택해주세요.",
+    checking && "게임 파일을 확인하는 중입니다.",
+    fileError && "게임 파일 검사에 실패했습니다. 파일을 다시 선택해주세요.",
+    requiresFile && !file && !checking && !fileError && "게임 파일을 선택해주세요.",
+    !agreed && "유의사항에 모두 동의해주세요.",
+    upload.stage === "uncertain" && "이전 요청 결과를 먼저 확인해주세요.",
+  ].filter((reason): reason is string => !!reason);
   const action = !isEditMode
     ? "검수 요청"
     : file || previousGameData?.register_state === 2
@@ -86,7 +102,11 @@ const GameUploadForm = ({ note, previousGameData, isEditMode }: Props) => {
       setFileError("");
       try {
         await validateGameZip(chosen);
-        if (version === selection.current) setValue("gameFile", chosen, { shouldValidate: true, shouldDirty: true });
+        if (version === selection.current) {
+          // 최신 선택의 검사가 끝난 뒤 값을 반영하고 전체 폼 검증을 다시 수행한다.
+          setValue("gameFile", chosen, { shouldDirty: true });
+          await trigger();
+        }
       } catch (error) {
         if (version === selection.current)
           setFileError(error instanceof Error ? error.message : "파일을 확인하지 못했습니다.");
@@ -102,6 +122,7 @@ const GameUploadForm = ({ note, previousGameData, isEditMode }: Props) => {
       }
       methods.clearErrors(field);
       setValue(field, [chosen], { shouldValidate: true });
+      void trigger();
       if (id.startsWith("stillCut")) {
         const oldId = previousGameData?.screenshot[Number(id.replace("stillCut", ""))]?.id;
         setScreenShotIds((ids) => ids.filter((value) => value !== oldId));
@@ -198,8 +219,12 @@ const GameUploadForm = ({ note, previousGameData, isEditMode }: Props) => {
             개발목록 확인
           </button>
         )}
-        {blocked && !upload.pending && (
-          <p className="text-gray-300">유의사항 동의, 필수 입력과 파일 검사 결과를 확인해주세요.</p>
+        {blocked && !upload.pending && blockReasons.length > 0 && (
+          <ul aria-label="제출할 수 없는 이유" className="text-gray-300 list-disc pl-5">
+            {blockReasons.map((reason) => (
+              <li key={reason}>{reason}</li>
+            ))}
+          </ul>
         )}
         <button
           disabled={blocked}
