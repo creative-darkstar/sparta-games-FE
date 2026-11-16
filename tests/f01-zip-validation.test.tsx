@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MemoryRouter } from "react-router-dom";
 import ZipValidationStatus from "../src/components/gameUploadComponents/ZipValidationStatus";
 import { getZipValidationStatus } from "../src/api/zipValidation";
 import { toZipValidationErrorView, toZipValidationView } from "../src/util/zipValidationState";
@@ -68,7 +69,9 @@ describe("ZipValidationStatus 자동 갱신", () => {
   const mount = () =>
     render(
       <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-        <ZipValidationStatus taskId={TASK} gameId={GAME} />
+        <MemoryRouter>
+          <ZipValidationStatus taskId={TASK} gameId={GAME} />
+        </MemoryRouter>
       </QueryClientProvider>,
     );
 
@@ -89,13 +92,15 @@ describe("ZipValidationStatus 자동 갱신", () => {
     expect(vi.mocked(getZipValidationStatus).mock.calls.length).toBe(calls); // 종료 후 자동 조회 중지
   });
 
-  it("검증 실패 시 사유와 재확인 버튼을 표시한다", async () => {
+  it("검증 실패 시 사유와 파일 수정 링크를 표시하고 재확인 버튼은 두지 않는다 (N07)", async () => {
     vi.mocked(getZipValidationStatus).mockResolvedValue(
       status("SUCCESS", { result: result("invalid", "심볼릭 링크를 확인했습니다.") }),
     );
     mount();
     expect(await screen.findByText("게임 파일 검증에 실패했습니다.")).toBeTruthy();
     expect(screen.getByText("사유: 심볼릭 링크를 확인했습니다.")).toBeTruthy();
+    expect(screen.getByRole("link", { name: "파일 수정하기" }).getAttribute("href")).toBe(`/game-edit/${GAME}`);
+    expect(screen.queryByRole("button", { name: "결과 다시 확인" })).toBeNull();
   });
 
   it("10분 동안 대기 상태면 자동 조회를 멈추고 지연 안내와 수동 재조회를 제공한다", async () => {

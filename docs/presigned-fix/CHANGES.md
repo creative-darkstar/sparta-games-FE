@@ -123,6 +123,16 @@ BE도 함께 수정했다. 게임이 없을 때 404 대신 200 빈 목록을 반
 - S3 버킷 CORS는 `AllowedHeaders: ["*"]`이라 이미 충족된다(2026-10-30 확인).
 - FE와 BE는 함께 배포해야 한다. 서명 조건이 서로 맞아야 업로드가 성공한다.
 
+## N07: 검증 실패 결과에 재확인 버튼 대신 파일 수정 링크 (통합 테스트 후속, 2026-11-16)
+
+통합 테스트(`log/local-test-20261109-presigned/FINDINGS.md` N07)에서 확정된 실패(invalid)에도 "결과 다시 확인" 버튼이 나와, 다음 행동(파일 수정)과 맞지 않는다는 점을 확인해 고쳤다.
+
+| 파일:라인 | 무엇을 바꿨나 | 왜 |
+|---|---|---|
+| [ZipValidationStatus.tsx:33](../../src/components/gameUploadComponents/ZipValidationStatus.tsx#L33) | 재확인 버튼 조건에서 valid와 invalid를 모두 제외 | 확정된 결과는 다시 조회해도 바뀌지 않는다 |
+| [ZipValidationStatus.tsx:38](../../src/components/gameUploadComponents/ZipValidationStatus.tsx#L38) | invalid일 때 "파일 수정하기" 링크(`/game-edit/{게임 ID}`) 표시 | 실패 사유 바로 아래에서 수정 화면으로 이동하게 한다 |
+| [tests/f01-zip-validation.test.tsx](../../tests/f01-zip-validation.test.tsx) | 실패 시 링크 표시·재확인 버튼 미표시 검증, 라우터 감싸기 | — |
+
 ## 검증
 
 - Vitest 14개 파일, 64개 테스트 통과(`npm test`). F02와 F04는 수정 전 코드에서 실패하는 것도 확인했다.
