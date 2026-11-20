@@ -1,0 +1,27 @@
+.validation-baseline/src/api/direct.ts(1,10): error TS6133: 'sparta_games' is declared but its value is never read.
+.validation-baseline/src/components/communityComponents/TeamBuilding/Profile/ProfileUserGame.tsx(39,85): error TS6133: 'e' is declared but its value is never read.
+.validation-baseline/src/components/communityComponents/TeamBuilding/TeamBuildLogModal.tsx(51,24): error TS6133: 'e' is declared but its value is never read.
+.validation-baseline/src/components/communityComponents/TeamBuilding/TeamRecruit/RecruitCommentSection.tsx(320,24): error TS6133: 'e' is declared but its value is never read.
+.validation-baseline/src/components/communityComponents/TeamBuilding/TeamRecruit/RecruitFormBasicInfo.tsx(64,26): error TS6133: 'ref' is declared but its value is never read.
+.validation-baseline/src/components/gameDetailComponents/ReviewSection/ReviewRegisterModal.tsx(150,28): error TS6133: 'event' is declared but its value is never read.
+.validation-baseline/src/components/headerComponents/SearchModal.tsx(3,1): error TS6133: 'FaSearch' is declared but its value is never read.
+.validation-baseline/src/components/headerComponents/SearchModal.tsx(65,85): error TS6133: 'e' is declared but its value is never read.
+.validation-baseline/src/components/mypageComponents/MyGame.tsx(39,85): error TS6133: 'e' is declared but its value is never read.
+.validation-baseline/src/components/mypageComponents/MypageLogModal.tsx(56,24): error TS6133: 'e' is declared but its value is never read.
+.validation-baseline/src/components/mypageComponents/Settting.tsx(6,18): error TS6133: 'props' is declared but its value is never read.
+.validation-baseline/src/components/signUpComponents/Account.tsx(31,25): error TS6133: 'modalRefs' is declared but its value is never read.
+.validation-baseline/src/hook/gameDetailHook/useReview.ts(58,17): error TS6133: 'data' is declared but its value is never read.
+.validation-baseline/src/hook/useHome.ts(19,15): error TS6133: 'res' is declared but its value is never read.
+.validation-baseline/src/hook/usePageHandler .ts(6,25): error TS6133: 'event' is declared but its value is never read.
+.validation-baseline/src/page/admin/AdminGameLog.tsx(164,89): error TS6133: 'e' is declared but its value is never read.
+.validation-baseline/src/page/Category.tsx(30,88): error TS6133: 'e' is declared but its value is never read.
+.validation-baseline/src/page/ResetPassword.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+.validation-baseline/src/page/ResetPassword.tsx(9,10): error TS6133: 'postEmailVerify' is declared but its value is never read.
+.validation-baseline/src/page/ResetPassword.tsx(15,24): error TS6133: 'props' is declared but its value is never read.
+.validation-baseline/src/page/ResetPassword.tsx(19,5): error TS6133: 'handleSubmit' is declared but its value is never read.
+.validation-baseline/src/page/ResetPassword.tsx(39,25): error TS6133: 'modalRefs' is declared but its value is never read.
+.validation-baseline/src/page/UserProfile.tsx(73,62): error TS2322: Type '{ user: TUserData; isMyPage: boolean; profileData: TTeamBuildProfileListItem | undefined; }' is not assignable to type 'IntrinsicAttributes & Props'.
+  Property 'profileData' does not exist on type 'IntrinsicAttributes & Props'.
+.validation-baseline/src/share/store/zustnad.ts(10,7): error TS6133: 'useStore' is declared but its value is never read.
+.validation-baseline/src/spartaDesignSystem/SpartaModal.tsx(31,31): error TS6133: 'e' is declared but its value is never read.
+.validation-baseline/src/util/uploadImageToS3.tsx(4,9): error TS6133: 'ext' is declared but its value is never read.

@@ -105,7 +105,7 @@ const GamePlay = ({ gameId, title, makerName, makerId, gamePath }: Props) => {
   const { userData } = userStore();
 
   const { data, isLoading } = useQuery<TGameDataResponse>({
-    queryKey: ["isBookMarked"],
+    queryKey: ["isBookMarked", userData?.data.user_id],
     queryFn: () => getMyBookmarkList(userData?.data.user_id),
     enabled: !!userData,
   });

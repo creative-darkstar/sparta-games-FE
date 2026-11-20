@@ -1,0 +1,86 @@
+import { useEffect, useRef, useState } from "react";
+import axios from "axios";
+import { uploadGameZip } from "../api/upload";
+import { postGameList, putGameList } from "../api/game";
+import { TGameSubmitResult, UploadStage } from "../types";
+export function useGameUpload() {
+  const [stage, setStage] = useState<UploadStage>("idle");
+  const [progress, setProgress] = useState<number | null>(null);
+  const [message, setMessage] = useState("");
+  const running = useRef(false);
+  const controller = useRef<AbortController | null>(null);
+  useEffect(
+    () => () => {
+      controller.current?.abort();
+    },
+    [],
+  );
+  const cached = useRef<{ file: File; key: string } | null>(null);
+  const invalidateFile = () => {
+    cached.current = null;
+    setProgress(null);
+    setMessage("");
+  };
+  /** 성공 시 접수 결과(game_id, task_id), 실패·취소 시 null */
+  const submit = async (form: FormData, file: File | null, gameId?: number): Promise<TGameSubmitResult | null> => {
+    if (running.current || stage === "uncertain") return null;
+    running.current = true;
+    setMessage("");
+    controller.current = new AbortController();
+    const signal = controller.current.signal;
+    let phase: "uploading" | "submitting" = "uploading";
+    try {
+      if (file) {
+        setStage("uploading");
+        if (cached.current?.file !== file)
+          cached.current = { file, key: await uploadGameZip(file, setProgress, signal) };
+        form.set("gamefile", cached.current.key);
+      }
+      phase = "submitting";
+      setStage("submitting");
+      const result = gameId ? await putGameList(form, gameId, signal) : await postGameList(form, signal);
+      if (signal.aborted) return null;
+      if (!["success", "warning"].includes(result.data.status)) {
+        setStage("failed");
+        setMessage("입력 조건을 확인해주세요. 요청을 완료하지 못했습니다.");
+        return null;
+      }
+      // 접수 완료. 서버 ZIP 검증은 이후 task_id로 조회한다.
+      setStage("accepted");
+      const data = result.data.data as Partial<TGameSubmitResult> | null;
+      return { game_id: data?.game_id ?? gameId ?? 0, task_id: data?.task_id ?? null };
+    } catch (error) {
+      if (signal.aborted) return null;
+      const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+      if (phase === "uploading" && status === 412) {
+        // F06: 같은 키에 객체가 이미 있음. 캐시된 키를 버리고 다음 시도는 새 presign부터 시작한다.
+        cached.current = null;
+        setStage("failed");
+        setMessage("업로드 파일이 이미 존재합니다. 파일을 다시 선택해주세요.");
+      } else if (phase === "submitting" && status === 409) {
+        // F06: 이미 사용된 업로드 키. 앞선 요청이 접수되었을 수 있으므로 재등록 전에 개발목록을 확인하게 한다.
+        cached.current = null;
+        setStage("uncertain");
+        setMessage("이미 접수된 파일일 수 있습니다. 개발목록을 확인해주세요.");
+      } else if (phase === "submitting" && (!status || status >= 500 || status === 408)) {
+        setStage("uncertain");
+        setMessage("요청 결과를 확인하지 못했습니다. 개발목록에서 등록 여부를 먼저 확인해주세요.");
+      } else {
+        setStage("failed");
+        setMessage(
+          phase === "uploading"
+            ? "파일 업로드에 실패했습니다. 연결 상태를 확인하고 다시 시도해주세요."
+            : status === 401
+              ? "로그인 상태를 확인해주세요."
+              : status === 403
+                ? "요청 권한이 없습니다."
+                : "입력값과 파일 조건을 확인해주세요. 요청을 완료하지 못했습니다.",
+        );
+      }
+      return null;
+    } finally {
+      running.current = false;
+    }
+  };
+  return { stage, progress, message, submit, invalidateFile, pending: stage === "uploading" || stage === "submitting" };
+}

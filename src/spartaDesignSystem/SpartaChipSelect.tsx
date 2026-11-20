@@ -173,6 +173,7 @@ const SpartaChipSelect = ({
         render={({ field: { onChange, value } }) => (
           <FormControl className={`w-full ${pass ? "border-primary-500" : "border-gray-100"}`}>
             <Select
+              inputProps={{ "aria-label": label || placeHolderText || "항목 선택" }}
               displayEmpty
               multiple={multiple}
               value={value || (multiple ? [] : "")}

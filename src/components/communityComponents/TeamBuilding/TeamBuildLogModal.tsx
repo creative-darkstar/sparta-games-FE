@@ -19,7 +19,7 @@ export default function TeamBuildLogModal({ userTeamBuildPost, isMyPage }: Props
   const { id } = useParams();
   const [page, setPage] = useState<number>(1);
 
-  const { data } = useQuery<TTeamBuildPostResponse>({
+  const { data, isPending, isError, refetch } = useQuery<TTeamBuildPostResponse>({
     queryKey: ["userteamBuildingPost", Number(id), page],
     queryFn: () => getUserTeambuildPosts(Number(id), COUNT_PER_PAGE, page, isMyPage),
   });
@@ -35,6 +35,15 @@ export default function TeamBuildLogModal({ userTeamBuildPost, isMyPage }: Props
           {userTeamBuildPost && userTeamBuildPost[0]?.author_data.nickname}의 팀빌딩 게시글
         </p>
       </div>
+      {isPending && <p role="status">팀빌딩 활동을 불러오는 중입니다.</p>}
+      {isError && (
+        <p role="alert">
+          팀빌딩 활동을 불러오지 못했습니다. <button onClick={() => refetch()}>다시 시도</button>
+        </p>
+      )}
+      {!isPending && !isError && !teambuildPosts?.length && (
+        <p className="text-white">아직 등록된 팀빌딩 모집글이 없습니다.</p>
+      )}
       <div className="grid grid-cols-4 gap-5">
         {teambuildPosts?.map((post, idx) => (
           <div key={idx} className="cursor-pointer">
@@ -48,7 +57,7 @@ export default function TeamBuildLogModal({ userTeamBuildPost, isMyPage }: Props
       <SpartaPagination
         dataTotalCount={dataTotalCount}
         countPerPage={COUNT_PER_PAGE}
-        onChangePage={(e, page) => setPage(page)}
+        onChangePage={(_e, page) => setPage(page)}
       />
     </div>
   );

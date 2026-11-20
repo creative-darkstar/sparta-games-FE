@@ -1,8 +1,9 @@
+import { useSaveVerification } from "../../../../hook/useSaveVerification";
+import { getTeamBuildProfileByUserId } from "../../../../api/teambuilding";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
-import { AxiosError } from "axios";
 
 import CommunityProjectTitle from "../../../common/CommunityProjectTitle";
 import ProfileRegisterFormProject from "./ProfileRegisterFormProject";
@@ -18,7 +19,6 @@ import { userStore } from "../../../../share/store/userStore";
 
 import recruitImage from "../../../../assets/gameDetail/ReviewEdit.svg";
 import arrowBack from "../../../../assets/common/arrow/triangleArrowLeft.svg";
-import defaultProfile from "../../../../assets/common/defaultProfile.svg";
 
 export default function ProfileRegisterForm() {
   const methods = useForm<TProfileRegisterForm>({
@@ -32,6 +32,7 @@ export default function ProfileRegisterForm() {
   const { userData } = userStore();
 
   const navigate = useNavigate();
+  const verification = useSaveVerification();
   const location = useLocation();
   const { profileData, isEditMode } = location.state || {};
 
@@ -111,13 +112,10 @@ export default function ProfileRegisterForm() {
   }, [watch()]);
 
   const onSubmit = (data: any) => {
+    if (isPending) return;
     const formData = new FormData();
 
-    if (data.profile_image === null) {
-      formData.append("image", defaultProfile);
-    } else {
-      formData.append("image", data.profile_image[0]);
-    }
+    if (data.profile_image?.[0] instanceof File) formData.append("image", data.profile_image[0]);
     formData.append("career", data.career);
     formData.append("my_role", data.my_role);
     formData.append("tech_stack", data.tech_stack);
@@ -147,10 +145,11 @@ export default function ProfileRegisterForm() {
 
   const createTeamBuildProfileMutation = useMutation({
     mutationFn: postTeamBuildProfile,
-    onSuccess: () => {
+    onSuccess: (data) => {
       setNoActionModalData({
         title: "글 등록 완료",
-        content: "글 등록이 완료됐습니다!",
+        content:
+          data.status === "warning" ? "글은 등록되었지만 이미지 처리에 문제가 있습니다." : "글 등록이 완료됐습니다!",
         btn1: {
           text: "확인했습니다.",
           onClick: () => {
@@ -162,23 +161,10 @@ export default function ProfileRegisterForm() {
       });
       onClickModalToggleHandlers[SUCCESS_MODAL_ID]();
     },
-    onError: (error: AxiosError) => {
-      if (error.response && error.response.status === 400) {
-        setNoActionModalData({
-          title: "프로필 등록 실패",
-          content: (error.response?.data as { message?: string })?.message,
-          btn1: {
-            text: "확인했습니다.",
-            onClick: () => {
-              onClickModalToggleHandlers[CONFIRM_MODAL_ID]();
-            },
-          },
-          type: "error",
-        });
-        onClickModalToggleHandlers[FAIL_MODAL_ID]();
-      } else {
-        window.alert("알 수 없는 오류가 발생했습니다. 잠시후에 다시 시도해주세요.");
-      }
+    onError: () => {
+      verification.setMessage(
+        "요청 결과를 확인하지 못했습니다. 입력 내용을 유지한 채 프로필에서 등록 여부를 확인해주세요.",
+      );
     },
   });
 
@@ -186,10 +172,13 @@ export default function ProfileRegisterForm() {
     mutationFn: ({ userId, formData }: { userId: number | undefined; formData: FormData }) =>
       putTeamBuildProfile(userId, formData),
 
-    onSuccess: () => {
+    onSuccess: (data) => {
       setNoActionModalData({
         title: "글 수정 완료",
-        content: "글 수정이 완료됐습니다!",
+        content:
+          data.status === "warning"
+            ? "변경사항이 저장되었지만 이미지 처리에 문제가 있습니다."
+            : "글 수정이 완료됐습니다!",
         btn1: {
           text: "확인했습니다.",
           onClick: () => {
@@ -201,19 +190,30 @@ export default function ProfileRegisterForm() {
       });
       onClickModalToggleHandlers[SUCCESS_MODAL_ID]();
     },
-    onError: (error: AxiosError) => {
-      if (error.response && error.response.status === 400) {
-        window.alert(`${(error.response?.data as { message?: string })?.message}`);
-      } else {
-        window.alert("알 수 없는 오류가 발생했습니다. 잠시후에 다시 시도해주세요.");
-      }
+    onError: async () => {
+      await verification.verify(
+        () => getTeamBuildProfileByUserId(userData?.data.user_id),
+        methods.getValues() as unknown as Record<string, unknown>,
+      );
     },
   });
 
-  const isPending = isEditMode ? updateTeamBuildProfileMutation.isPending : createTeamBuildProfileMutation.isPending;
+  const isPending =
+    verification.checking ||
+    (isEditMode ? updateTeamBuildProfileMutation.isPending : createTeamBuildProfileMutation.isPending);
 
   return (
     <div className="mx-auto mt-16">
+      {verification.message && (
+        <div role="status" className="p-4 text-white bg-gray-800">
+          <p>{verification.message}</p>
+          {isEditMode && (
+            <button type="button" onClick={() => navigate(`/my-page/${userData?.data.user_id}?tab=teambuilding`)}>
+              상세 확인
+            </button>
+          )}
+        </div>
+      )}
       <div className="flex justify-center items-center mb-6">
         <div
           onClick={currentStep === 0 ? undefined : goToPrevStep}

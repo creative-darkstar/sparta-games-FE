@@ -1,5 +1,5 @@
-import React from "react";
-import useModalToggles from "../hook/useModalToggles";
+import React, { useEffect, useRef } from "react";
+
 import closeModalIcon from "../assets/common/closeModalIcon.svg";
 import closeModalIconPrimary from "../assets/common/closeModalIconPrimary.svg";
 import closeModalIconAlert from "../assets/common/closeModalIconAlert.svg";
@@ -24,11 +24,54 @@ const SpartaModal = ({
   title,
   type = "primary",
 }: TModalProps) => {
-  const { modalRefs } = useModalToggles([modalId]);
+  const dialog = useRef<HTMLDivElement>(null);
+  const close = useRef(onClose);
+  close.current = onClose;
+  useEffect(() => {
+    if (!isOpen) return;
+    const previous = document.activeElement as HTMLElement | null;
+    const root = dialog.current;
+    const focusable = () =>
+      Array.from(
+        root?.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex="0"]',
+        ) || [],
+      ).filter((element) => element.getClientRects().length > 0);
+    (focusable()[0] || root)?.focus();
+    const keydown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        close.current();
+      }
+      if (event.key === "Tab") {
+        const items = focusable();
+        if (!items.length) {
+          event.preventDefault();
+          root?.focus();
+          return;
+        }
+        const first = items[0],
+          last = items[items.length - 1];
+        if (event.shiftKey && (document.activeElement === first || document.activeElement === root)) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    root?.addEventListener("keydown", keydown);
+    return () => {
+      root?.removeEventListener("keydown", keydown);
+      if (previous?.isConnected) previous.focus();
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
-  const handleOverlayClick = (e: React.MouseEvent) => {
+  const handleOverlayClick = () => {
     if (closeOnClickOutside) {
       onClose();
     }
@@ -66,7 +109,12 @@ const SpartaModal = ({
       onClick={handleOverlayClick}
     >
       <div
-        ref={modalRefs[modalId]}
+        ref={dialog}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title || "확인"}
+        id={modalId}
+        tabIndex={-1}
         className={`bg-gray-800 p-10 w-fit max-w-[1250px] mx-4 transform transition-all duration-300 ease-in-out animate-modalSlideIn rounded-[20px] border-[1px] border-solid ${getStyledType()}`}
         onClick={(e) => e.stopPropagation()}
       >
@@ -77,16 +125,16 @@ const SpartaModal = ({
                 type === "error"
                   ? "text-error-default"
                   : type === "alert"
-                  ? "text-alert-default"
-                  : type === "primary"
-                  ? "text-primary-400"
-                  : "text-gray-500"
+                    ? "text-alert-default"
+                    : type === "primary"
+                      ? "text-primary-400"
+                      : "text-gray-500"
               } 
               font-DungGeunMo `}
             >
               {title}
             </div>
-            <button onClick={onClose}>
+            <button type="button" aria-label="모달 닫기" onClick={onClose}>
               <img src={getCloseModalIcon()} alt="close modal" className="w-5" />
             </button>
           </div>

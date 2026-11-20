@@ -1,4 +1,4 @@
-import { sparta_games, sparta_games_auth } from "./axios";
+import { sparta_games_auth } from "./axios";
 
 /**
  * 등록 게임 목록 호출
@@ -18,7 +18,7 @@ export const getRegisterGameList = async (props: string) => {
  */
 export const getRegisterGameDetail = async (id: number) => {
   try {
-    const res = await sparta_games_auth.get(`/directs/api/admin/list/${id}`);
+    const res = await sparta_games_auth.get(`/directs/api/admin/list/${id}/`, { timeout: 10000 });
     return res.data;
   } catch (error) {
     console.error(error);
@@ -117,4 +117,11 @@ export const downloadZip = async (id: number) => {
     console.error("ZIP 다운로드 실패:", error);
     throw error;
   }
+};
+
+export const getApprovalTask = async (taskId: string) => {
+  const response = await sparta_games_auth.get(`/directs/api/list/task-status/${encodeURIComponent(taskId)}/`, {
+    timeout: 10000,
+  });
+  return response.data.data as { status: string; result: { status?: string; game_id?: number } | null };
 };

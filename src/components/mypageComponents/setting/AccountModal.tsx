@@ -1,3 +1,4 @@
+import { passwordValidation, PASSWORD_HELP } from "../../../util/accountValidation";
 import React, { useEffect } from "react";
 import { TUserInformationInputForm } from "../../../types";
 import { useForm } from "react-hook-form";
@@ -42,21 +43,6 @@ const AccountModal = ({ onSuccess }: Props) => {
   const new_password_check = watch("new_password_check");
 
   // 비밀번호 유효성 검사 규칙
-  const passwordValidation = {
-    required: "비밀번호를 입력해주세요",
-    minLength: {
-      value: 8,
-      message: "비밀번호는 최소 8자 이상이어야 합니다",
-    },
-    maxLength: {
-      value: 32,
-      message: "비밀번호는 최대 32자까지 가능합니다",
-    },
-    pattern: {
-      value: /^(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*()_\-+=[\]{};':"\\|,.<>/?]).{8,32}$/,
-      message: "8~32자의 영문 소문자, 숫자, 특수문자를 포함해야 합니다",
-    },
-  };
 
   // 비밀번호 확인 유효성 검사 규칙
   const passwordCheckValidation = {
@@ -135,7 +121,7 @@ const AccountModal = ({ onSuccess }: Props) => {
           placeholder: "*****",
         }}
         subLabel={{
-          default: "비밀번호를 다시 입력해주세요",
+          default: PASSWORD_HELP,
           error: errors.new_password?.message as string,
           pass: watch("password_check") && !errors.new_password ? "사용 가능한 비밀번호입니다" : "",
         }}
@@ -151,7 +137,7 @@ const AccountModal = ({ onSuccess }: Props) => {
           placeholder: "*****",
         }}
         subLabel={{
-          default: "비밀번호를 다시 입력해주세요",
+          default: PASSWORD_HELP,
           error: errors.new_password_check?.message as string,
           pass: new_password_check && !errors.new_password_check ? "비밀번호가 일치합니다" : "",
         }}

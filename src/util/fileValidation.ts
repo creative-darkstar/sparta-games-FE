@@ -1,4 +1,4 @@
-const VALID_FILE_TYPES = ["zip", "7z"];
+const VALID_FILE_TYPES = ["zip"];
 const ALLOWED_EXTENSIONS = ["jpg", "jpeg", "png", "gif"];
 
 export const checkFileType = (file: File): boolean => {

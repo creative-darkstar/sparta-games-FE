@@ -1,0 +1,14 @@
+{
+  "baselineLint": {
+    "errors": 50,
+    "warnings": 21
+  },
+  "currentLint": {
+    "errors": 47,
+    "warnings": 14
+  },
+  "newLintFindings": [],
+  "baselineTypeErrors": 26,
+  "currentTypeErrors": 21,
+  "newTypeFindings": []
+}

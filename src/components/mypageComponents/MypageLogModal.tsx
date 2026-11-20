@@ -32,6 +32,7 @@ const MypageLogModal = ({ user_name, user_id, recent }: Props) => {
   const likedCount = myLikedData.data && myLikedData.data?.pagination.count;
 
   const data = recent ? recentGameData : likedData;
+  const query = recent ? myRecentGameData : myLikedData;
 
   return (
     <div className="flex flex-col gap-6 overflow-hidden w-[1170px]">
@@ -41,6 +42,15 @@ const MypageLogModal = ({ user_name, user_id, recent }: Props) => {
           {user_name}의 {recent ? "Playlist" : "Bookmark"}
         </p>
       </div>
+      {query.isPending && <p role="status">목록을 불러오는 중입니다.</p>}
+      {query.isError && (
+        <p role="alert">
+          목록을 불러오지 못했습니다. <button onClick={() => query.refetch()}>다시 시도</button>
+        </p>
+      )}
+      {!query.isPending && !query.isError && !data?.length && (
+        <p className="text-white">{recent ? "최근 플레이한 게임이 없습니다." : "즐겨찾기한 게임이 없습니다."}</p>
+      )}
       <div className="flex gap-3">
         {data?.map((item, idx) => (
           <div key={idx} className="cursor-pointer">
@@ -53,7 +63,7 @@ const MypageLogModal = ({ user_name, user_id, recent }: Props) => {
       <SpartaPagination
         dataTotalCount={recent ? recentGameCount : likedCount}
         countPerPage={4}
-        onChangePage={(e, page) => setPage(page)}
+        onChangePage={(_e, page) => setPage(page)}
       />
     </div>
   );

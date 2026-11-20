@@ -1,417 +1,312 @@
-import { ChangeEvent, useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { useBlocker, useNavigate } from "react-router-dom";
 import { FormProvider, useForm } from "react-hook-form";
-
-import { postGameList, putGameList } from "../../api/game";
-
-import SpartaReactionModal, { TSpartaReactionModalProps } from "../../spartaDesignSystem/SpartaReactionModal";
-import useModalToggles from "../../hook/useModalToggles";
-
+import { useQueryClient } from "@tanstack/react-query";
 import { userStore } from "../../share/store/userStore";
-import changeUrl from "../../util/changeUrl";
-import { checkFileExtension, checkFileSize, checkFileType } from "../../util/fileValidation";
-
 import { TGamePlayData, TGameUploadInput } from "../../types";
-
+import { validateGameZip } from "../../util/gameZipValidation";
+import { checkFileExtension, checkFileSize } from "../../util/fileValidation";
+import { useGameUpload } from "../../hook/useGameUpload";
 import GameUploadFields from "./GameUploadFields";
 import GameMediaFields from "./GameMediaFields";
 import GameDescriptionField from "./GameDescriptionField";
-
-import { uploadErrorMessages } from "./uploadErrorMessages";
-
-import JSZip from "jszip";
-
+import SpartaModal from "../../spartaDesignSystem/SpartaModal";
 import "./Form.css";
-import { useMutation } from "@tanstack/react-query";
-import { AxiosError } from "axios";
-import SpartaButton from "../../spartaDesignSystem/SpartaButton";
-import SpartaPhraseCheckModal from "../../spartaDesignSystem/SpartaPhraseCheckModal";
 
 type Props = {
-  note: {
-    1: boolean;
-    2: boolean;
-    3: boolean;
-  };
+  note: { 1: boolean; 2: boolean; 3: boolean };
   previousGameData: TGamePlayData | undefined;
   isEditMode: boolean;
 };
-
 const GameUploadForm = ({ note, previousGameData, isEditMode }: Props) => {
-  const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
-  const MAX_FILE_SIZE = 500 * 1024 * 1024;
-  const GAME_UPLOAD_CHECK_ID = "gameUploadCheckId";
-  const GAME_UPLOAD_SUCCESS_ID = "gameUploadSuccessModal";
-  const EDIT_SUCCESS_ID = "editSuccessId";
-  const NO_ACTION_MODAL_ID = "noActionModal";
-
   const methods = useForm<TGameUploadInput>({
     mode: "onChange",
     defaultValues: {
+      title: previousGameData?.title || "",
+      category: previousGameData?.category[0]?.name || "",
+      content: previousGameData?.content || "",
+      video: previousGameData?.youtube_url || "",
+      gameFile: null,
       thumbnail: previousGameData?.thumbnail || "",
-      gameFile: previousGameData?.gamefile || "",
+      stillCut: [],
     },
   });
-
-  const { register, setValue, formState, handleSubmit, trigger, resetField, reset } = methods;
-
+  const { register, setValue, handleSubmit, formState, watch, trigger } = methods;
+  // F02: isValid는 렌더 중 읽어야 react-hook-form이 구독한다. 아래 blocked 식의 단락 평가로
+  // 읽히지 않으면 갱신되지 않으므로(ZIP을 마지막에 고르면 버튼 비활성) 항상 먼저 읽는다.
+  const { isValid } = formState;
+  const [checking, setChecking] = useState(false);
+  const [fileError, setFileError] = useState("");
+  const [confirm, setConfirm] = useState(false);
+  const selection = useRef(0);
+  const [screenShotIds, setScreenShotIds] = useState(previousGameData?.screenshot.map((s) => s.id) || []);
+  const upload = useGameUpload();
+  // F05: 전송·접수 대기가 30초를 넘으면 지연 안내. 완료 시간을 약속하지 않는다.
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    setSlow(false);
+    if (upload.stage !== "uploading" && upload.stage !== "submitting") return;
+    const timer = window.setTimeout(() => setSlow(true), 30_000);
+    return () => window.clearTimeout(timer);
+  }, [upload.stage]);
   const navigate = useNavigate();
+  const finished = useRef(false);
+  const blocker = useBlocker(() => upload.pending && !finished.current);
+  const queryClient = useQueryClient();
   const { userData } = userStore();
-
-  const [isUploading, setIsUploading] = useState(false);
-
-  const { modalToggles, onClickModalToggleHandlers } = useModalToggles([
-    GAME_UPLOAD_CHECK_ID,
-    GAME_UPLOAD_SUCCESS_ID,
-    EDIT_SUCCESS_ID,
-    NO_ACTION_MODAL_ID,
-  ]);
-
-  const noActionData = uploadErrorMessages(() => {
-    onClickModalToggleHandlers[NO_ACTION_MODAL_ID]();
-  });
-
-  const [noActionModalData, setNoActionModalData] = useState<Partial<TSpartaReactionModalProps>>(
-    noActionData.fileUploadWarning,
-  );
-
-  const [screenShotIds, setScreenShotIds] = useState<number[]>([]);
-  const { pathname } = useLocation();
-
+  const file = watch("gameFile");
+  const requiresFile = !isEditMode || previousGameData?.register_state === 2;
+  const agreed = isEditMode || (note[1] && note[2] && note[3]);
+  const [title, category, content, thumbnail] = watch(["title", "category", "content", "thumbnail"]);
+  const blocked =
+    !agreed ||
+    checking ||
+    upload.pending ||
+    !!fileError ||
+    (requiresFile && !file) ||
+    !isValid ||
+    upload.stage === "uncertain";
+  // 비활성 사유는 실제 조건별로 표시한다.
+  const blockReasons = [
+    !title?.trim() && "제목을 입력해주세요.",
+    !category && "장르를 선택해주세요.",
+    !content?.replace(/<[^>]*>/g, "").trim() && "게임 설명을 입력해주세요.",
+    !thumbnail && "썸네일을 선택해주세요.",
+    checking && "게임 파일을 확인하는 중입니다.",
+    fileError && "게임 파일 검사에 실패했습니다. 파일을 다시 선택해주세요.",
+    requiresFile && !file && !checking && !fileError && "게임 파일을 선택해주세요.",
+    !agreed && "유의사항에 모두 동의해주세요.",
+    upload.stage === "uncertain" && "이전 요청 결과를 먼저 확인해주세요.",
+  ].filter((reason): reason is string => !!reason);
+  const action = !isEditMode
+    ? "검수 요청"
+    : file || previousGameData?.register_state === 2
+      ? "재검수 요청"
+      : "변경사항 저장";
   useEffect(() => {
-    if (pathname === "/game-upload") {
-      reset({
-        thumbnail: "",
-        gameFile: "",
-        title: "",
-      });
-    }
-  }, [pathname]);
-
-  useEffect(() => {
+    register("thumbnail", { required: "썸네일을 선택해주세요." });
     register("content", {
-      required: "필수",
+      validate: (value) => !!value?.replace(/<[^>]*>/g, "").trim() || "게임 설명을 입력해주세요.",
     });
   }, [register]);
-
   useEffect(() => {
-    trigger();
-  }, [note]);
-
-  useEffect(() => {
-    if (previousGameData) {
-      setValue("category", previousGameData.category[0].name, { shouldValidate: true });
-      setValue("title", previousGameData.title, { shouldValidate: true });
-      setValue("content", previousGameData.content, { shouldValidate: true });
-      setValue("video", previousGameData?.youtube_url);
-    }
-
-    trigger();
-  }, [previousGameData, setValue]);
-
-  useEffect(() => {
-    if (previousGameData?.screenshot) {
-      const ids = previousGameData.screenshot.map((item) => item.id);
-      setScreenShotIds(ids);
-    }
-  }, [previousGameData]);
-
-  const validateImageFile = async (file: File): Promise<boolean> => {
-    if (!checkFileSize(file, MAX_IMAGE_SIZE)) {
-      setNoActionModalData(noActionData.imageUploadWarning);
-      onClickModalToggleHandlers[NO_ACTION_MODAL_ID]();
-
-      return false;
-    }
-
-    if (!checkFileExtension(file.name)) {
-      setNoActionModalData(noActionData.imageTypeWarning);
-      onClickModalToggleHandlers[NO_ACTION_MODAL_ID]();
-
-      return false;
-    }
-
-    return true;
-  };
-
-  const validateGameFile = (file: File): boolean => {
-    if (!checkFileType(file)) {
-      setNoActionModalData(noActionData.fileTypeWarning);
-      onClickModalToggleHandlers[NO_ACTION_MODAL_ID]();
-
-      return false;
-    }
-
-    if (!checkFileSize(file, MAX_FILE_SIZE)) {
-      setNoActionModalData(noActionData.fileSizeWarning);
-      onClickModalToggleHandlers[NO_ACTION_MODAL_ID]();
-
-      return false;
-    }
-
-    return true;
-  };
-
-  const handleFileValidation = async (file: File, inputId: string): Promise<boolean> => {
-    if (inputId === "gameThumbnail" || inputId.startsWith("stillCut")) {
-      return await validateImageFile(file);
-    }
-
-    if (inputId === "gameFile") {
-      return validateGameFile(file);
-    }
-
-    return false;
-  };
-
-  const onChangeFileHandler = async (e: ChangeEvent<HTMLInputElement>) => {
-    const inputId = e.target.id;
-    const files = [...e.target.files!];
-    const fileName = files[0].name.toLowerCase();
-    const fileInput = document.getElementById(inputId) as HTMLInputElement;
-    const urlArr: string[] = [];
-
-    if (inputId === "gameFile") {
-      setIsUploading(true);
-
-      if (!fileName.endsWith(".zip")) {
-        setNoActionModalData(noActionData.onlyZipFilehWarning);
-        onClickModalToggleHandlers[NO_ACTION_MODAL_ID]();
-        fileInput.value = "";
-        resetField(inputId as "gameFile");
-        setIsUploading(false);
-
-        return;
+    if (!upload.pending) return;
+    const leave = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", leave);
+    return () => window.removeEventListener("beforeunload", leave);
+  }, [upload.pending]);
+  const onChangeFileHandler = async (event: ChangeEvent<HTMLInputElement>) => {
+    const chosen = event.target.files?.[0];
+    if (!chosen) return;
+    const id = event.target.id;
+    if (id === "gameFile") {
+      const version = ++selection.current;
+      upload.invalidateFile();
+      setValue("gameFile", null);
+      setChecking(true);
+      setFileError("");
+      try {
+        await validateGameZip(chosen);
+        if (version === selection.current) {
+          // 최신 선택의 검사가 끝난 뒤 값을 반영하고 전체 폼 검증을 다시 수행한다.
+          setValue("gameFile", chosen, { shouldDirty: true });
+          await trigger();
+        }
+      } catch (error) {
+        if (version === selection.current)
+          setFileError(error instanceof Error ? error.message : "파일을 확인하지 못했습니다.");
+      } finally {
+        if (version === selection.current) setChecking(false);
       }
-
-      const zip = await JSZip.loadAsync(files[0]);
-      const fileObjects = Object.keys(zip.files);
-      const indexPath = Object.keys(zip.files).find((path) => path.endsWith("index.html"));
-
-      const hasIndexHtml = fileObjects.some((path) => path === "index.html");
-      const hasBuildFolder = fileObjects.some((path) => path.startsWith("Build/"));
-      const hasTemplateDataFolder = fileObjects.some((path) => path.startsWith("TemplateData/"));
-
-      const isValidWebGL = hasIndexHtml && hasBuildFolder && hasTemplateDataFolder;
-
-      // WebGl로 빌드된 파일이 루트 폴더에 위치하는지 확인
-      const depth = indexPath && indexPath.split("/").filter(Boolean).length - 1;
-
-      if (depth && depth > 0) {
-        setNoActionModalData(noActionData.gameFileDepthWarning);
-        onClickModalToggleHandlers[NO_ACTION_MODAL_ID]();
-        fileInput.value = "";
-        resetField(inputId as "gameFile");
-        setIsUploading(false);
-
-        return;
-      } else if (!isValidWebGL) {
-        setNoActionModalData(noActionData.gameFileUploadWarning);
-        onClickModalToggleHandlers[NO_ACTION_MODAL_ID]();
-        fileInput.value = "";
-        resetField(inputId as "gameFile");
-        setIsUploading(false);
-
-        return;
-      }
-    }
-
-    // 파일 유효성(확장자, 크기) 검사
-    for (const file of files) {
-      const isValid = await handleFileValidation(file, inputId);
-
-      if (isValid) {
-        urlArr.push(changeUrl(file));
-        setIsUploading(false);
-      } else {
-        fileInput.value = "";
-        resetField(inputId as "gameFile" | "thumbnail" | "stillCut");
-      }
-    }
-
-    //스틸컷 이미지 수정 - 기존에 업로드한 이미지를 새로운 이미지로 업로드하면 기존 이미지의 id 제거
-    const index = Number(inputId.replace("stillCut", ""));
-    const oldScreenshotId = previousGameData?.screenshot[index]?.id;
-
-    if (oldScreenshotId) {
-      const updatedIds = screenShotIds.filter((id) => id !== oldScreenshotId);
-
-      setScreenShotIds(updatedIds);
-    }
-  };
-
-  const createFormData = (data: TGameUploadInput) => {
-    const formData = new FormData();
-
-    formData.append("title", data.title);
-    formData.append("category", data.category);
-    formData.append("content", data.content);
-    formData.append("youtube_url", data.video);
-
-    if (data.gameFile instanceof FileList) {
-      formData.append("gamefile", data.gameFile[0]);
-    } else if (typeof data.gameFile === "object" && previousGameData?.gamefile) {
-      formData.append("gamefile", previousGameData?.gamefile);
-    }
-
-    if (data.thumbnail instanceof FileList) {
-      formData.append("thumbnail", data.thumbnail[0]);
-    } else if (typeof data.gameFile === "object" && previousGameData?.thumbnail) {
-      formData.append("thumbnail", previousGameData?.thumbnail);
-    }
-
-    if (data.stillCut) {
-      data.stillCut.forEach((screenshot) => {
-        if (screenshot.length > 0) formData.append("new_screenshots", screenshot[0]);
-      });
-    }
-    if (previousGameData?.screenshot) {
-      screenShotIds.forEach((id) => {
-        formData.append("old_screenshots", String(id));
-      });
-    }
-    return formData;
-  };
-
-  const onSubmit = async (data: TGameUploadInput) => {
-    const formData = createFormData(data);
-
-    if (!isEditMode) {
-      createGameMutation.mutate(formData);
     } else {
-      updateGameMutation.mutate({ formData, gamePk: previousGameData?.id });
+      const field = id === "gameThumbnail" ? "thumbnail" : (`stillCut.${Number(id.replace("stillCut", ""))}` as const);
+      if (!checkFileSize(chosen, 5 * 1024 * 1024) || !checkFileExtension(chosen.name)) {
+        methods.setError(field, { message: "JPG, JPEG, PNG, GIF 이미지, 최대 5MB를 선택해주세요." });
+        setValue(field, field === "thumbnail" ? previousGameData?.thumbnail || "" : []);
+        return;
+      }
+      methods.clearErrors(field);
+      setValue(field, [chosen], { shouldValidate: true });
+      void trigger();
+      if (id.startsWith("stillCut")) {
+        const oldId = previousGameData?.screenshot[Number(id.replace("stillCut", ""))]?.id;
+        setScreenShotIds((ids) => ids.filter((value) => value !== oldId));
+      }
     }
   };
-
-  const createGameMutation = useMutation({
-    mutationFn: postGameList,
-    onSuccess: () => {
-      setNoActionModalData({
-        title: "등록이 완료되었습니다.",
-        content:
-          "검수 진행결과는 마이페이지 - 개발목록에서 확인 가능합니다.<br />검수 승인이 완료되는 즉시 유저들에게 게임이 공개되며, 2일 이내로 소요될 예정입니다.<br />잠시만 기다려주세요🙂",
-        btn1: {
-          text: "확인했습니다.",
-          onClick: () => {
-            onClickModalToggleHandlers[NO_ACTION_MODAL_ID]();
-            navigate(`/my-page/${userData?.data.user_id}?tab=develop`);
-          },
+  const submit = async (data: TGameUploadInput) => {
+    if (blocked) return;
+    const body = new FormData();
+    body.set("title", data.title);
+    body.set("category", data.category);
+    body.set("content", data.content);
+    body.set("youtube_url", data.video || "");
+    if (typeof data.thumbnail !== "string" && data.thumbnail?.[0]) body.set("thumbnail", data.thumbnail[0]);
+    data.stillCut?.forEach((files) => {
+      if (files?.[0]) body.append("new_screenshots", files[0]);
+    });
+    screenShotIds.forEach((id) => body.append("old_screenshots", String(id)));
+    const accepted = await upload.submit(body, data.gameFile, previousGameData?.id);
+    if (accepted) {
+      for (const key of ["myGameList", "gameDetail", "gameList"])
+        void queryClient.invalidateQueries({ queryKey: [key] });
+      finished.current = true;
+      // 접수 후 개발목록으로 이동. 검증 결과는 목록에서 task_id로 이어서 조회한다.
+      navigate(`/my-page/${userData?.data.user_id}?tab=develop`, {
+        state: {
+          gameResult: !isEditMode || !!data.gameFile ? "review" : "saved",
+          gameId: accepted.game_id,
+          taskId: accepted.task_id,
         },
-        type: "primary",
       });
-
-      onClickModalToggleHandlers[GAME_UPLOAD_CHECK_ID]();
-      onClickModalToggleHandlers[NO_ACTION_MODAL_ID]();
-    },
-    onError: (error: AxiosError) => {
-      if (error.response && error.response.status === 400) {
-        window.alert(`${(error.response?.data as { message?: string })?.message}`);
-      } else {
-        window.alert("알 수 없는 오류가 발생했습니다. 잠시후에 다시 시도해주세요.");
-      }
-    },
-  });
-
-  const updateGameMutation = useMutation({
-    mutationFn: ({ formData, gamePk }: { formData: FormData; gamePk: number | undefined }) =>
-      putGameList(formData, gamePk),
-    onSuccess: () => {
-      setNoActionModalData({
-        title: "글 수정 완료",
-        content: "글 수정이 완료됐습니다!",
-        btn1: {
-          text: "확인했습니다.",
-          onClick: () => {
-            onClickModalToggleHandlers[NO_ACTION_MODAL_ID]();
-            navigate(`/my-page/${userData?.data.user_id}?tab=develop`);
-          },
-        },
-        type: "alert",
-      });
-
-      onClickModalToggleHandlers[NO_ACTION_MODAL_ID]();
-    },
-    onError: (error: AxiosError) => {
-      if (error.response && error.response.status === 400) {
-        window.alert(`${(error.response?.data as { message?: string })?.message}`);
-      } else {
-        window.alert("알 수 없는 오류가 발생했습니다. 잠시후에 다시 시도해주세요.");
-      }
-    },
-  });
-
+    } else setConfirm(false);
+  };
   return (
-    <>
-      <FormProvider {...methods}>
-        <form onSubmit={handleSubmit(onSubmit)}>
+    <FormProvider {...methods}>
+      <SpartaModal
+        isOpen={blocker.state === "blocked"}
+        modalId="upload-leave"
+        title="업로드 중 이탈"
+        onClose={() => blocker.reset?.()}
+      >
+        <p className="text-white">
+          이탈하면 전송이 중단될 수 있습니다. 새로고침·탭 종료 후에는 파일을 다시 선택해야 할 수 있습니다.
+        </p>
+        <button onClick={() => blocker.reset?.()}>계속 작성</button>
+        <button onClick={() => blocker.proceed?.()}>이동</button>
+      </SpartaModal>
+      <form
+        onSubmit={handleSubmit(() => {
+          if (!blocked) setConfirm(true);
+        })}
+      >
+        <fieldset disabled={upload.pending}>
           <div className="flex gap-10 my-10 text-gray-300 text-body-18">
-            <GameUploadFields
-              isUploading={isUploading}
-              onChangeFileHandler={onChangeFileHandler}
-              previousGameData={previousGameData}
-            />
-
+            <div className="w-2/3">
+              <GameUploadFields
+                isUploading={checking}
+                onChangeFileHandler={onChangeFileHandler}
+                previousGameData={previousGameData}
+              />
+              {fileError && (
+                <p role="alert" className="text-red-400">
+                  {fileError} 파일 다시 선택
+                </p>
+              )}
+              {requiresFile && !file && <p className="text-white">새 게임 파일을 선택해주세요.</p>}
+              {isEditMode && previousGameData?.register_state !== 2 && (
+                <p className="text-white">
+                  {file
+                    ? "게임 파일을 변경하면 다시 검수합니다. 검수 중에는 공개 목록에서 제외됩니다."
+                    : "게임 파일을 변경하지 않으면 기존 파일이 유지됩니다."}
+                </p>
+              )}
+            </div>
             <GameMediaFields onChangeFileHandler={onChangeFileHandler} previousGameData={previousGameData} />
           </div>
-
-          <GameDescriptionField />
-          <SpartaButton
-            onClick={!isEditMode ? onClickModalToggleHandlers[GAME_UPLOAD_CHECK_ID] : undefined}
-            content={
-              !isEditMode && note[1] && note[2] && note[3] && formState.isValid
-                ? "승인요청"
-                : isEditMode && formState.isValid
-                ? "수정요청"
-                : "필수 값을 입력한 후 승인요청을 할 수 있습니다."
-            }
-            disabled={!isEditMode ? !formState.isValid : updateGameMutation.isPending || !formState.isValid}
-            type="filled"
-            btnType={!isEditMode ? "button" : "submit"}
-            size="medium"
-            customStyle="mb-10 w-full h-14"
-          />
-        </form>
-      </FormProvider>
-      {noActionModalData && (
-        <SpartaReactionModal
-          isOpen={modalToggles[NO_ACTION_MODAL_ID]}
-          onClose={onClickModalToggleHandlers[NO_ACTION_MODAL_ID]}
-          modalId={NO_ACTION_MODAL_ID}
-          title={noActionModalData.title || ""}
-          content={noActionModalData.content || ""}
-          btn1={{
-            text: noActionModalData?.btn1?.text || "",
-            onClick: noActionModalData?.btn1?.onClick || (() => {}),
-          }}
-          type={noActionModalData.type}
-        />
-      )}
-
-      <SpartaPhraseCheckModal
-        isOpen={modalToggles[GAME_UPLOAD_CHECK_ID]}
-        modalId={GAME_UPLOAD_CHECK_ID}
-        isPending={createGameMutation.isPending}
-        onClose={onClickModalToggleHandlers[GAME_UPLOAD_CHECK_ID]}
-        onClickEvent={async () => {
-          await handleSubmit((data) => {
-            const formData = createFormData(data);
-            createGameMutation.mutate(formData);
-          })();
+          <GameDescriptionField disabled={upload.pending} />
+          {formState.errors.content && (
+            <p role="alert" className="text-red-400">
+              {formState.errors.content.message}
+            </p>
+          )}
+        </fieldset>
+        <div role="status" aria-live="polite" className="text-white my-4">
+          {checking && "파일 확인 중입니다."}
+          {upload.stage === "uploading" && (
+            <>
+              <p>게임 파일 업로드 중 {upload.progress !== null && `· ${upload.progress}%`}</p>
+              <progress max={100} value={upload.progress ?? undefined} aria-label="게임 파일 업로드" />
+            </>
+          )}
+          {upload.stage === "uploading" && upload.progress === 100 && (
+            <p>파일 전송이 끝났습니다. 서버 응답을 기다리고 있습니다. 아직 등록이 끝나지 않았습니다.</p>
+          )}
+          {upload.stage === "submitting" && <p>검수 요청을 처리 중입니다. 아직 등록이 끝나지 않았습니다.</p>}
+          {slow && <p>평소보다 오래 걸리고 있습니다. 창을 닫지 말고 기다려주세요. 완료 시간은 보장할 수 없습니다.</p>}
+          {upload.pending && (
+            <p>이탈하면 전송이 중단될 수 있습니다. 새로고침·탭 종료 후에는 파일을 다시 선택해야 할 수 있습니다.</p>
+          )}
+          {upload.message && <p>{upload.message}</p>}
+        </div>
+        {upload.stage === "uncertain" && (
+          <button type="button" onClick={() => navigate(`/my-page/${userData?.data.user_id}?tab=develop`)}>
+            개발목록 확인
+          </button>
+        )}
+        {blocked && !upload.pending && blockReasons.length > 0 && (
+          <ul aria-label="제출할 수 없는 이유" className="text-gray-300 list-disc pl-5">
+            {blockReasons.map((reason) => (
+              <li key={reason}>{reason}</li>
+            ))}
+          </ul>
+        )}
+        <button
+          disabled={blocked}
+          className="my-6 p-4 w-full rounded bg-primary-500 text-black disabled:opacity-50"
+          type="submit"
+        >
+          {upload.stage === "failed" ? "다시 시도" : action}
+        </button>
+      </form>
+      <SpartaModal
+        isOpen={confirm}
+        modalId="game-summary"
+        title={action}
+        closeOnClickOutside={false}
+        onClose={() => {
+          if (!upload.pending) setConfirm(false);
         }}
-        modalPurpose="upload"
       >
-        <ul className="list-disc pl-5 leading-6 text-white">
-          <li>최대 7일까지 검수기간이 걸릴 수 있습니다.</li>
-          <li>검수가 통과될 시 즉시 홈페이지에서 노출됩니다.</li>
-          <li>검수 중 수정이 진행될 경우, 새롭게 검수가 진행될 수 있으니 다시한번 확인해주시기 바랍니다.</li>
-          <li>
-            등록를 희망하신다면, <b className="text-primary-500">‘즐거운 게임세상 스파르타게임즈!’</b>
-            라고 입력해주시기 바랍니다.
-          </li>
-        </ul>
-      </SpartaPhraseCheckModal>
-    </>
+        <div className="text-white space-y-4 max-w-xl">
+          <p>게임명: {watch("title")}</p>
+          <p>카테고리: {watch("category")}</p>
+          <p className="break-all">
+            ZIP: {file ? `${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)` : "기존 파일 유지"}
+          </p>
+          {isEditMode && (
+            <p>
+              변경 항목:{" "}
+              {Object.keys(formState.dirtyFields)
+                .map(
+                  (key) =>
+                    ({
+                      title: "제목",
+                      category: "카테고리",
+                      content: "설명",
+                      video: "영상",
+                      thumbnail: "썸네일",
+                      stillCut: "스틸컷",
+                      gameFile: "게임 파일",
+                    })[key] || key,
+                )
+                .join(", ") || "변경 없음"}
+            </p>
+          )}
+          <p>
+            {!isEditMode || file
+              ? "접수 후 서버에서 게임 파일을 검증하고, 관리자 검수 통과 후 공개됩니다. 접수 후에는 다른 화면으로 이동해도 됩니다."
+              : "기존 게임 파일을 유지하고 변경사항을 저장합니다."}
+          </p>
+          <p role="status" aria-live="polite">
+            {upload.stage === "uploading"
+              ? `게임 파일 업로드 중${upload.progress === null ? "" : ` · ${upload.progress}%`}`
+              : upload.stage === "submitting"
+                ? "검수 요청을 처리 중입니다."
+                : ""}
+          </p>
+          <button disabled={upload.pending} onClick={() => setConfirm(false)}>
+            돌아가기
+          </button>
+          <button className="ml-8" disabled={upload.pending} onClick={handleSubmit(submit)}>
+            {upload.pending ? "처리 중" : action}
+          </button>
+        </div>
+      </SpartaModal>
+    </FormProvider>
   );
 };
-
 export default GameUploadForm;

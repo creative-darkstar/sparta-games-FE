@@ -1,0 +1,26 @@
+
+> sparta_game_react@0.0.0 typecheck
+> tsc -p tsconfig.app.json --noEmit
+
+src/components/communityComponents/TeamBuilding/Profile/ProfileUserGame.tsx(39,85): error TS6133: 'e' is declared but its value is never read.
+src/components/communityComponents/TeamBuilding/TeamRecruit/RecruitCommentSection.tsx(320,24): error TS6133: 'e' is declared but its value is never read.
+src/components/communityComponents/TeamBuilding/TeamRecruit/RecruitFormBasicInfo.tsx(64,26): error TS6133: 'ref' is declared but its value is never read.
+src/components/gameDetailComponents/ReviewSection/ReviewRegisterModal.tsx(150,28): error TS6133: 'event' is declared but its value is never read.
+src/components/headerComponents/SearchModal.tsx(3,1): error TS6133: 'FaSearch' is declared but its value is never read.
+src/components/headerComponents/SearchModal.tsx(65,85): error TS6133: 'e' is declared but its value is never read.
+src/components/mypageComponents/Settting.tsx(6,18): error TS6133: 'props' is declared but its value is never read.
+src/components/signUpComponents/Account.tsx(32,25): error TS6133: 'modalRefs' is declared but its value is never read.
+src/hook/gameDetailHook/useReview.ts(58,17): error TS6133: 'data' is declared but its value is never read.
+src/hook/useHome.ts(19,15): error TS6133: 'res' is declared but its value is never read.
+src/hook/usePageHandler .ts(6,25): error TS6133: 'event' is declared but its value is never read.
+src/page/admin/AdminGameLog.tsx(164,89): error TS6133: 'e' is declared but its value is never read.
+src/page/Category.tsx(30,88): error TS6133: 'e' is declared but its value is never read.
+src/page/ResetPassword.tsx(2,8): error TS6133: 'React' is declared but its value is never read.
+src/page/ResetPassword.tsx(10,10): error TS6133: 'postEmailVerify' is declared but its value is never read.
+src/page/ResetPassword.tsx(16,24): error TS6133: 'props' is declared but its value is never read.
+src/page/ResetPassword.tsx(20,5): error TS6133: 'handleSubmit' is declared but its value is never read.
+src/page/ResetPassword.tsx(40,25): error TS6133: 'modalRefs' is declared but its value is never read.
+src/page/UserProfile.tsx(73,62): error TS2322: Type '{ user: TUserData; isMyPage: boolean; profileData: TTeamBuildProfileListItem | undefined; }' is not assignable to type 'IntrinsicAttributes & Props'.
+  Property 'profileData' does not exist on type 'IntrinsicAttributes & Props'.
+src/share/store/zustnad.ts(10,7): error TS6133: 'useStore' is declared but its value is never read.
+src/util/uploadImageToS3.tsx(4,9): error TS6133: 'ext' is declared but its value is never read.

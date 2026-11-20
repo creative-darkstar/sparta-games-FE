@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import { getUserData } from "../api/user";
 
@@ -11,6 +11,7 @@ import MyGame from "../components/mypageComponents/MyGame";
 import ProfileDetail from "../components/communityComponents/TeamBuilding/Profile/ProfileDetail";
 
 import { userStore } from "../share/store/userStore";
+import ZipValidationStatus from "../components/gameUploadComponents/ZipValidationStatus";
 import { TUserDataResponse } from "../types";
 
 const MyPage = () => {
@@ -18,6 +19,16 @@ const MyPage = () => {
 
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [result, setResult] = useState<"review" | "saved" | null>(location.state?.gameResult || null);
+  // F05: 접수 배너는 해당 제출의 최신 ZIP 검증 결과로 갱신한다(같은 task_id 조회를 카드와 공유).
+  const [submitted] = useState<{ gameId?: number; taskId?: string | null }>({
+    gameId: location.state?.gameId,
+    taskId: location.state?.taskId,
+  });
+  useEffect(() => {
+    if (location.state?.gameResult) navigate(location.pathname + location.search, { replace: true, state: null });
+  }, [location, navigate]);
   const [searchParams] = useSearchParams();
 
   const tabParam = searchParams.get("tab");
@@ -27,9 +38,14 @@ const MyPage = () => {
     unClicked: "bg-gray-800 text-gray-400",
   };
 
-  const { userData } = userStore();
+  const { userData, authStatus } = userStore();
   const isUserDataLoaded = !!userData?.data?.user_id;
-  const isMyPage = isUserDataLoaded ? id === userData.data.user_id.toString() : null;
+  // F04: 로그인 복원 중에는 본인 여부를 확정하지 않는다(null). 비로그인이면 공개 조회(false).
+  const isMyPage = isUserDataLoaded
+    ? id === userData.data.user_id.toString()
+    : authStatus === "loading"
+      ? null
+      : false;
 
   useEffect(() => {
     if (!isUserDataLoaded) return;
@@ -47,7 +63,7 @@ const MyPage = () => {
   const { data, isError } = useQuery<TUserDataResponse>({
     queryKey: ["userProfile", id],
     queryFn: () => getUserData(Number(id)),
-    enabled: !!id && !isMyPage,
+    enabled: !!id && isMyPage === false,
     retry: 1,
   });
 
@@ -74,6 +90,13 @@ const MyPage = () => {
     setNavigation(tab);
     navigate(`?tab=${tab}`, { replace: true });
   };
+
+  if (isMyPage === null)
+    return (
+      <p role="status" className="w-full py-20 text-center text-white">
+        로그인 정보를 확인하는 중입니다.
+      </p>
+    );
 
   return (
     user && (
@@ -121,13 +144,23 @@ const MyPage = () => {
               )}
             </div>
             <div className="w-[85%]">
+              {result && (
+                <div role="status" className="p-4 mb-4 text-white bg-gray-700">
+                  <strong>{result === "review" ? "검수 요청 완료" : "변경사항이 저장되었습니다."}</strong>
+                  {result === "review" && submitted.taskId && (
+                    <ZipValidationStatus taskId={submitted.taskId} gameId={submitted.gameId} />
+                  )}
+                  {result === "review" && <p>관리자 검수 결과는 알림으로 안내합니다. 다른 화면으로 이동해도 서버 검증은 계속됩니다.</p>}
+                  <button onClick={() => setResult(null)}>닫기</button>
+                </div>
+              )}
               <ProfileHeader user={user} isMyPage={isMyPage} setNavigation={setNavigation} />
               {navigation === "log" ? (
                 <Logs user={user} />
               ) : navigation === "teambuilding" && user ? (
                 <ProfileDetail user={user} isMyPage={isMyPage} />
               ) : navigation === "develop" ? (
-                <MyGame user={user} isMyPage={isMyPage} />
+                <MyGame submissionComplete={result === "review"} user={user} isMyPage={isMyPage} />
               ) : (
                 <Setting />
               )}

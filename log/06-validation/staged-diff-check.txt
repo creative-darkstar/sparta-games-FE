@@ -1,0 +1,2 @@
+git diff --cached --check main
+Result: PASS (no whitespace errors)

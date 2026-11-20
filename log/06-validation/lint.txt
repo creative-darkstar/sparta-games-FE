@@ -1,0 +1,147 @@
+
+> sparta_game_react@0.0.0 lint
+> eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0
+
+
+C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\App.tsx
+  30:6  warning  React Hook useEffect has a missing dependency: 'setUser'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\api\login.ts
+   7:3   error  Unnecessary try/catch wrapper             no-useless-catch
+  21:3   error  Unnecessary try/catch wrapper             no-useless-catch
+  34:3   error  Unnecessary try/catch wrapper             no-useless-catch
+  48:3   error  Unnecessary try/catch wrapper             no-useless-catch
+  62:3   error  Unnecessary try/catch wrapper             no-useless-catch
+  77:3   error  Unnecessary try/catch wrapper             no-useless-catch
+  91:36  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  92:3   error  Unnecessary try/catch wrapper             no-useless-catch
+
+C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\components\adminComponents\AdminLogsModal.tsx
+  19:32  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\components\common\SpartaSelectableGroup.tsx
+   7:43  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  11:64  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  19:49  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  32:82  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  38:51  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\components\communityComponents\TeamBuilding\Profile\ProfileRegisterForm.tsx
+  112:6   warning  React Hook useMemo has a missing dependency: 'watch'. Either include it or remove the dependency array                                  react-hooks/exhaustive-deps
+  112:7   warning  React Hook useMemo has a complex expression in the dependency array. Extract it to a separate variable so it can be statically checked  react-hooks/exhaustive-deps
+  114:27  error    Unexpected any. Specify a different type                                                                                                @typescript-eslint/no-explicit-any
+
+C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\components\communityComponents\TeamBuilding\Profile\ProfileRegisterFormBasic.tsx
+  68:6  warning  React Hook useEffect has missing dependencies: 'isEditMode' and 'profileData.profile_image'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\components\communityComponents\TeamBuilding\Profile\ProfileRegisterFormProject.tsx
+  156:6  warning  React Hook useMemo has a missing dependency: 'onClickUploadImage'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\components\communityComponents\TeamBuilding\Profile\ProfileUserGame.tsx
+  35:29  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\components\communityComponents\TeamBuilding\TeamRecruit\RecruitForm.tsx
+   37:6   warning  React Hook useEffect has missing dependencies: 'isEditMode', 'methods', and 'postDetail'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  148:33  error    Unexpected any. Specify a different type                                                                                                      @typescript-eslint/no-explicit-any
+
+C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\components\communityComponents\TeamBuilding\TeamRecruit\RecruitFormBasicInfo.tsx
+  64:26  error  'ref' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\components\communityComponents\TeamBuilding\TeamRecruit\RecruitFormDescription.tsx
+  152:6  warning  React Hook useMemo has a missing dependency: 'onClickUploadImage'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\components\gameDetailComponents\GamePlaySection\ScreenShotModal.tsx
+  48:6  warning  React Hook useEffect has missing dependencies: 'onClickModalToggleHandler' and 'swiperRef'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\components\gameDetailComponents\ReviewSection\ReviewContents.tsx
+  55:6  warning  React Hook useEffect has a missing dependency: 'queryClient'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\components\gameDetailComponents\ReviewSection\ReviewRegisterModal.tsx
+  63:6  warning  React Hook useEffect has missing dependencies: 'form' and 'resetForm'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\components\headerComponents\SearchModal.tsx
+  3:10  error  'FaSearch' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\components\mypageComponents\Settting.tsx
+  4:22  error  Don't use `{}` as a type. `{}` actually means "any non-nullish value".
+- If you want a type meaning "any object", you probably want `object` instead.
+- If you want a type meaning "any value", you probably want `unknown` instead.
+- If you want a type meaning "empty object", you probably want `Record<string, never>` instead.
+- If you really want a type meaning "any non-nullish value", you probably want `NonNullable<unknown>` instead  @typescript-eslint/ban-types
+  6:18  error  'props' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+
+C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\components\mypageComponents\setting\AccountModal.tsx
+  71:22  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\components\mypageComponents\setting\ProfileModal.tsx
+  18:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  58:22  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\components\signUpComponents\Account.tsx
+  32:25  error  'modalRefs' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\constant\constant.ts
+  4:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\hook\useHome.ts
+  19:15  error  'res' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\hook\useModalToggles.ts
+  28:23  error  React Hook "useMouseClickClose" cannot be called inside a callback. React Hooks must be called in a React function component or a custom React Hook function  react-hooks/rules-of-hooks
+
+C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\hook\useRoleOptions.ts
+  7:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\page\Category.tsx
+  17:29  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\page\MyPage.tsx
+  50:6  warning  React Hook useEffect has missing dependencies: 'isMyPage', 'isUserDataLoaded', and 'tabParam'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  76:6  warning  React Hook useEffect has missing dependencies: 'isMyPage' and 'tabParam'. Either include them or remove the dependency array                       react-hooks/exhaustive-deps
+
+C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\page\Redirect.tsx
+   39:45  error    Unexpected any. Specify a different type                                                                                                                                                     @typescript-eslint/no-explicit-any
+  119:6   warning  React Hook useEffect has missing dependencies: 'email', 'error', 'logint_tpye', 'navigate', 'onClickModalToggleHandlers', and 'setUser'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\page\ResetPassword.tsx
+  10:10  error  'postEmailVerify' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  14:14  error  Don't use `{}` as a type. `{}` actually means "any non-nullish value".
+- If you want a type meaning "any object", you probably want `object` instead.
+- If you want a type meaning "any value", you probably want `unknown` instead.
+- If you want a type meaning "empty object", you probably want `Record<string, never>` instead.
+- If you really want a type meaning "any non-nullish value", you probably want `NonNullable<unknown>` instead  @typescript-eslint/ban-types
+  16:24  error  'props' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+  20:5   error  'handleSubmit' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+  40:25  error  'modalRefs' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+
+C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\page\admin\AdminGameLog.tsx
+  70:6  warning  React Hook useEffect has a missing dependency: 'checkAll'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\share\store\userStore.ts
+   9:46  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  33:46  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\share\store\zustnad.ts
+  10:7  error  'useStore' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\spartaDesignSystem\SpartaChipSelect.tsx
+  17:12  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  21:11  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\spartaDesignSystem\SpartaTextField.tsx
+  14:15  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  18:14  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\types\index.ts
+  251:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\types\quill-image-drop-module.d.ts
+  2:20  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\util\convertToConfigObjects.ts
+  4:80  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\user\Desktop\Sparta_Games_BE\sparta-games-FE\src\util\uploadImageToS3.tsx
+  4:9  error  'ext' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+✖ 61 problems (47 errors, 14 warnings)

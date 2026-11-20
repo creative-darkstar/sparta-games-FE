@@ -1,58 +1,18 @@
-import axios, { AxiosError } from "axios";
+import { TApiResponse, TGameSubmitResult } from "../types";
 import { sparta_games, sparta_games_auth } from "./axios";
 
-/**
- * 게임 생성
- */
-export const postGameList = async (formData: FormData) => {
-  try {
-    const res = await sparta_games_auth.post("/games/api/list/", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-
-    return res;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      window.alert("오류가 발생했습니다. 관리자에게 문의해주세요.");
-
-      return error.response;
-    }
-  }
-};
-
-/**
- * 게임 수정
- */
-export const putGameList = async (formData: FormData, gamePk: number | undefined) => {
-  try {
-    const res = await sparta_games_auth.put(`/games/api/list/${gamePk}/`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-
-    return res;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      return error.response;
-    }
-  }
-};
-
-/**
- * 게임 삭제
- */
-export const deleteGameList = async (gamePk: number | undefined) => {
-  try {
-    const res = await sparta_games_auth.delete(`/games/api/list/${gamePk}/`);
-
-    return res;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      window.alert("오류가 발생했습니다. 관리자에게 문의해주세요.");
-
-      return error.response;
-    }
-  }
-};
+// Propagate HTTP failures to mutation callers.
+export const postGameList = (formData: FormData, signal?: AbortSignal) =>
+  sparta_games_auth.post<TApiResponse<TGameSubmitResult>>("/games/api/list/", formData, {
+    signal,
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+export const putGameList = (formData: FormData, gamePk: number | undefined, signal?: AbortSignal) =>
+  sparta_games_auth.put<TApiResponse<TGameSubmitResult>>(`/games/api/list/${gamePk}/`, formData, {
+    signal,
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+export const deleteGameList = (gamePk: number | undefined) => sparta_games_auth.delete(`/games/api/list/${gamePk}/`);
 
 /**
  * 게임 리스트 조회(메인)
@@ -105,7 +65,9 @@ export const getGameListByCategory = async (category: string, page?: number) => 
  */
 export const getGameDetail = async (id: number) => {
   try {
-    const res = await sparta_games.get(`/games/api/list/${id}`);
+    const res = await (sessionStorage.getItem("accessToken") ? sparta_games_auth : sparta_games).get(
+      `/games/api/list/${id}/`,
+    );
     return res.data;
   } catch (error) {
     console.error(error);
@@ -117,16 +79,8 @@ export const getGameDetail = async (id: number) => {
  * 내 북마크 게임 리스트 조회
  */
 export const getMyBookmarkList = async (userPk: number | undefined) => {
-  try {
-    const res = await sparta_games_auth.get(`/users/api/${userPk}/likes/`);
-
-    return res.data;
-  } catch (error: unknown) {
-    if ((error as AxiosError).response?.status === 404) {
-      return { results: [] };
-    }
-    throw error;
-  }
+  const res = await sparta_games_auth.get(`/users/api/${userPk}/likes/`);
+  return res.data;
 };
 
 /**

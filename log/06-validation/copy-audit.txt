@@ -1,0 +1,2 @@
+src/components/mypageComponents\setting\Account.tsx:171:              회원탈퇴 시, 2일이 지난 후 회원정보가 삭제되며, 기간이 지나기 전까지의 업로드 게임 및 댓글은
+src/components/mypageComponents\setting\Account.tsx:176:            <li>2일이 지나기 전 계정복구를 원하신다면 관리자에게 문의해주세요!</li>
